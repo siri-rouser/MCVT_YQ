@@ -14,7 +14,7 @@ def main(previous_reid_dict,previous_rm_dict,query_cam,gallery_cam):
     query_track_path = os.path.join(abs_path,query_cam,f'{query_cam}_tracklet.pkl')
     gallery_track_path = os.path.join(abs_path,gallery_cam,f'{gallery_cam}_tracklet.pkl')
     cm = CostMatrix(query_track_path,gallery_track_path)
-    dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times= cm.cost_matrix()
+    dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times= cm.cost_matrix(metric = 'Cosine_Distance')
     # print(dismat.shape)
     # save temporal results in here
     np.savez(save_np_path,distmat=dismat,q_track_ids=q_track_ids,g_track_ids=g_track_ids,q_cam_ids=q_cam_ids,g_cam_ids=g_cam_ids,q_times=q_times,g_times=g_times)

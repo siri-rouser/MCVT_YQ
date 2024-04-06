@@ -1,6 +1,7 @@
 import pickle
 import numpy as np
 import torch
+import sys
 
 
 class CostMatrix:
@@ -12,18 +13,16 @@ class CostMatrix:
     def time_spatioal_constains(self):
         pass
 
-    def cost_matrix(self):
+    def cost_matrix(self,metric):
         q_feats,q_track_ids,q_cam_ids,q_times = self._track_operation(self.query_track_path)
         g_feats,g_track_ids,g_cam_ids,g_times = self._track_operation(self.gallery_track_path)
-        
-        m, n = q_feats.size(0), g_feats.size(0)
-        distmat = torch.pow(q_feats, 2).sum(dim=1, keepdim=True).expand(m, n) + \
-                torch.pow(g_feats, 2).sum(dim=1, keepdim=True).expand(n, m).t()
-        # torch.power --> torch.sum(dim=1) make it to be one column, those two step calculate the L2 norm--> torch.expand make it expand to m,n(base on the size of qf and gf)
-        # torch.t() is the transposed function
-        distmat.addmm_(1, -2, q_feats, g_feats.t()) # here calculate the a^2+b^2-2ab 
-        # in here, 1 is alpha, -2 is beta: 1*dismat -2*qf*gf.t()
-        distmat = distmat.numpy()
+
+        if metric == 'Euclidean_Distance':    
+            distmat = self._euclidean_distance(q_feats, g_feats)
+        elif metric == 'Cosine_Distance':
+            distmat = self._cosine_distance(q_feats,g_feats)
+        else:
+            sys.exit('Please input the right metric')
 
         q_times = np.asarray(q_times)
         g_times = np.asarray(g_times)
@@ -52,3 +51,29 @@ class CostMatrix:
 
         return feats,track_ids,cam_ids,times
     
+    def _euclidean_distance(self, q_feats, g_feats):
+        m, n = q_feats.size(0), g_feats.size(0)
+        distmat = torch.pow(q_feats, 2).sum(dim=1, keepdim=True).expand(m, n) + \
+                torch.pow(g_feats, 2).sum(dim=1, keepdim=True).expand(n, m).t()
+        # torch.power --> torch.sum(dim=1) make it to be one column, those two step calculate the L2 norm--> torch.expand make it expand to m,n(base on the size of qf and gf)
+        # torch.t() is the transposed function
+        distmat.addmm_(1, -2, q_feats, g_feats.t()) # here calculate the a^2+b^2-2ab 
+        # in here, 1 is alpha, -2 is beta: 1*dismat -2*qf*gf.t()
+        distmat = distmat.numpy()
+
+        return distmat
+    
+    def _cosine_distance(self,q_feats, g_feats):
+        q_feats = torch.nn.functional.normalize(q_feats, p=2, dim=1) # p=2 means sqrt(||q_feats||^2)
+        g_feats = torch.nn.functional.normalize(g_feats, p=2, dim=1)
+
+        # Compute the cosine similarity
+        cosine_sim = torch.mm(q_feats, g_feats.t())
+
+        # Since cosine distance is 1 - cosine similarity
+        distmat = 1 - cosine_sim
+
+        # Convert the distance matrix from torch tensor to numpy array
+        distmat = distmat.numpy()
+
+        return distmat

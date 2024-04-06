@@ -14,7 +14,8 @@ SPEED_LIMIT = [[(0,0), (400,1300), (550,2000), (1000,2000), (1200, 2000), (1450,
                [(1200, 2000), (800,2000), (650,2000), (150,500), (0,0), (250,900)],
                [(1450, 2000), (1050,2000), (900, 2000), (450, 2000), (250,900), (0,0)]]  
 
-def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, new_id, dis_thre=0.29,dis_remove=0.34):
+def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, new_id, dis_thre=0.5,dis_remove=0.6):
+    # For Euclidean Distance (0.29,0.34)
     # (dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times,new_id)
     # new_id = np.max(g_track_ids)
     rm_dict = {}
