@@ -37,9 +37,12 @@ class Modified_Tracker:
         # matching_index = [index_bbox,index_detected_bbox]
         tracks = []
         for i,track in enumerate(self.tracker.tracks):
-            if not track.is_confirmed() or track.time_since_update > 1:
+            # if not track.is_confirmed() or track.time_since_update > 1:
+            #     continue
+            if track.time_since_update > 1:
                 continue
-            bbox = track.to_tlbr()
+            # bbox = track.to_tlbr() # This value is from [mean,variance]
+            bbox = track.detection_bbox[-1]
             feat = track.features[-1]
             # print(len(track.features))
          #   print(len(feat))

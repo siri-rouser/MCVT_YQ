@@ -10,13 +10,13 @@ from config import cfg
 
 
 def main(seq):
-    cfg.merge_from_file(f'../config/{sys.argv[1]}')
-    cfg.freeze()
-    abs_path = cfg.DATA_DIR
-    source_abs_path = cfg.DET_SOURCE_DIR
+    # cfg.merge_from_file(f'../config/{sys.argv[1]}')
+    # cfg.freeze()
+    # abs_path = cfg.DATA_DIR
+    # source_abs_path = cfg.DET_SOURCE_DIR
 
-    # abs_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge'
-    # source_abs_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detection/images/test/S06'
+    abs_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge'
+    source_abs_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detection/images/test/S06'
     path_det = os.path.join(abs_path , seq , 'labels')
     path_feat = os.path.join(abs_path , seq , 'feature')
     path_source = os.path.join(source_abs_path,seq,'img1')
@@ -40,9 +40,12 @@ def main(seq):
     with open(save_path, 'w') as final_result:
         for frame_number, frame_img in enumerate(sorted_source_files): 
             frame_number = frame_number+1
+            # if frame_number == 2001:
+            #     break
             frame_img_path = os.path.join(path_source,frame_img)
             det_file_path = os.path.join(path_det, frame_img.replace('.jpg','.txt')) # get the imgxxxxxx.txt file path here
             feat_file_path = os.path.join(path_feat,frame_img.replace('.jpg', '.json')) # get the imgxxxxxx.json file path here
+            
 
             frame_img = cv2.imread(frame_img_path)
 
@@ -73,13 +76,17 @@ def main(seq):
                         feat_temp = value.get('feat', [])
                         feats.append(feat_temp)
 
-
+            # print(f'bboxs length:{len(bbox)}')
+            # print(f'confidence score length:{len(confidence)}')
+            # print(f'feats length:{len(feats)}')
             # Data use for deepsort tracker
             tracker.update(bbox,confidence,feats)
             for index, track in enumerate(tracker.tracks):
                 image_name = f'img_{frame_number}_{index}'
                 bbox = track.bbox
-                x1, y1, x2, y2 = bbox
+                x, y, w, h = bbox
+                x1,y1,x2,y2 = x,y,x+w,y+h
+                bbox = x1,y1,x2,y2 
                 if x1<0:
                     x1 = 0
                 track_id = track.track_id
@@ -102,7 +109,8 @@ def main(seq):
 
 if __name__ == "__main__":
     seqs = ['c041','c042','c043','c044','c045','c046']
-    # seqs = ['c045']
+    # seqs = ['c041']
+
     for seq in seqs:
         print(f'Start Processing camera {seq}')
         main(seq)

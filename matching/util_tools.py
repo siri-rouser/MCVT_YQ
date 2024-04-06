@@ -14,7 +14,7 @@ SPEED_LIMIT = [[(0,0), (400,1300), (550,2000), (1000,2000), (1200, 2000), (1450,
                [(1200, 2000), (800,2000), (650,2000), (150,500), (0,0), (250,900)],
                [(1450, 2000), (1050,2000), (900, 2000), (450, 2000), (250,900), (0,0)]]  
 
-def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, new_id, dis_thre=0.28,dis_remove=0.3):
+def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, new_id, dis_thre=0.29,dis_remove=0.34):
     # (dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times,new_id)
     # new_id = np.max(g_track_ids)
     rm_dict = {}
@@ -186,7 +186,8 @@ def calc_length(output):
     return calc_dict
 
 def update_output(output,reid_dict,rm_dict,f,max_length=20):
-  #  calc_dict = calc_length(output) 
+    calc_dict = calc_length(output) 
+    i = 0 
   #  donot need to calculate again because all tracks already been filtered ine Dataprocess.py
     for line in output:
         line = line.strip().split(" ")
@@ -195,13 +196,16 @@ def update_output(output,reid_dict,rm_dict,f,max_length=20):
 # not going to update this track if it is in the rm_dict
         if cam_id in list(rm_dict.keys()):
             if track_id in list(rm_dict[cam_id].keys()):
+                print(f' For general conunt on {i}', end = '\r')
+                i+=1
                 continue
 
-        # if calc_dict[cam_id][track_id] < max_length: 
-        #     continue
+        if calc_dict[cam_id][track_id] < max_length: 
+            continue
         # if cam_id in list(reid_dict.keys()):
         #     if track_id in list(reid_dict[cam_id].keys()):
         #         line[1] = str(reid_dict[cam_id][track_id]["id"]) # In this case, update the ID
+        # 修改dis_remove变化不大的原因应该是因为被hard remove掉的query set本身也不在reid_dict 里面
         if cam_id in list(reid_dict.keys()):
             if track_id in list(reid_dict[cam_id].keys()):
                 line[1] = str(reid_dict[cam_id][track_id]["id"])
@@ -211,6 +215,8 @@ def update_output(output,reid_dict,rm_dict,f,max_length=20):
                 #     f_track_id = int(f[1])
                 
                 f.write(" ".join(line)+' -1 -1'+"\n")
+        
+    f.close()
 
 def reid_dict_filter(reid_dict):
     track_counter = {}

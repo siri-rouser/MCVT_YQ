@@ -99,6 +99,8 @@ def process_input_by_worker_process(image_path_list):
 
 def load_all_data(data_path):
     """Load all mode data."""
+    print(f'data path is {data_path}')
+    time.sleep(2)
 
     image_list = []
     for cam in os.listdir(data_path):
@@ -116,9 +118,10 @@ def load_certain_data(data_path):
     cams = []
     for cam in os.listdir(data_path):
         cams.append(cam)
-    cam = cams[-1]
+    cam = cams[0]
+    print(f'I am processing {cam}')
 
-    image_dir = os.path.join(data_path, cam, 'dets') # .../AIC21-MTMC/datasets/algorithm_results/detected_reid1 + c40 + dets
+    image_dir = os.path.join(data_path, cam, 'dets') # .../AIC21-MTMC/datasets/algorithm_results/detected_reid1 + c41 + dets
     cam_image_list = glob(image_dir+'/*.png') # The glob function search for all file end with .png in the image_dir, the * means any potential name
     cam_image_list = sorted(cam_image_list) # Sort all files with ascending sequence like 1.png 2.png
     print(f'{len(cam_image_list)} images for {cam}') # returns: 402 images for c042
@@ -128,21 +131,24 @@ def load_certain_data(data_path):
 
 
 def save_feature(output_path, data_path, pool_output):
+    # output_path: '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_reid1/'
+    # data_path: '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/'
     """Save feature."""
     if not os.path.isdir(output_path):
         os.makedirs(output_path)
     all_feat_dic = {}
     for cam in os.listdir(data_path):
-        dets_pkl_file = os.path.join(data_path, cam, f'{cam}_dets.pkl') # Get the directory! c40_dets.pkl
-        det_dic = pickle.load(open(dets_pkl_file, 'rb')) # load data
-        all_feat_dic[cam] = det_dic.copy() # add the feature of this detection!(because we have three different network tho)
+        dets_pkl_file = os.path.join(data_path, cam, f'{cam}_dets.pkl')
+        det_dic = pickle.load(open(dets_pkl_file, 'rb'))
+        all_feat_dic[cam] = det_dic.copy()
 
     for sample_dic in pool_output:
         for image_path, feat in sample_dic.items():
             cam = image_path.split('/')[-3]
             image_name = image_path.split('/')[-1].split('.')[0]
+            # if image_name not in all_feat_dic[cam]:
+            #     all_feat_dic[cam][image_name] = {}
             all_feat_dic[cam][image_name]['feat'] = feat
-            
     for cam, feat_dic in all_feat_dic.items():
         if not os.path.isdir(os.path.join(output_path, cam)):
             os.makedirs(os.path.join(output_path, cam))
@@ -154,7 +160,8 @@ def save_feature(output_path, data_path, pool_output):
 def extract_image_feat(_cfg):
     """Extract reid feat for each image, using multiprocessing."""
 
-    image_list = load_certain_data(_cfg.DET_IMG_DIR) # dataset load
+    image_list = load_all_data(_cfg.DET_IMG_DIR) # dataset load
+    # image_list = load_certain_data(_cfg.DET_IMG_DIR)
     chunk_list = chunks(image_list) # take batchs
     print('=============data load finish=======')
 

@@ -82,11 +82,12 @@ if __name__ == "__main__":
     # reid_dict, rm_dict = main(reid_dict,rm_dict,seqs[1],seqs[2])
 
     print(rm_dict)
-    reid_dict = reid_dict_filter(reid_dict)
+    reid_dict = reid_dict_filter(reid_dict) # filter tracks only exist for one camera and once(in the first cam)
 
     with open(tracklets,"r") as f:
         or_tracks = f.readlines()
     g = open(final_res,"w")
     update_output(or_tracks,reid_dict,rm_dict,g)
+
 
     xytoxywh(final_res,final_res1)

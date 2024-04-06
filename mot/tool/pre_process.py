@@ -2,11 +2,13 @@ import numpy as np
 import pickle
 import json
 import os
+import time
 from utils import set_dir
 
 src_path = "../../datasets/algorithm_results/detect_merge/"
 
 cam_names = ['c041','c042','c043','c044','c045','c046']
+# cam_names = ['c041']
 
 
 def save_file(data,cam_name,image_name):
@@ -46,6 +48,7 @@ for cam_name in cam_names:
 
         # modify from here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         data = pickle.load(fid)
+        print(f'The length of data : {len(data)}')
         frame_data = {}
         last_image_name = ""
         for index,key in enumerate(data):
@@ -54,6 +57,9 @@ for cam_name in cam_names:
                 frame_data[key] = data[key]
                 last_image_name = image_name
                 continue
+            # if 'frame' not in data[key]:
+            #     print('here!')
+            #     continue
             if last_image_name != image_name:
                 save_file(frame_data,cam_name,last_image_name)
                 frame_data = {}
@@ -61,6 +67,3 @@ for cam_name in cam_names:
             frame_data[key] = data[key]
             if index == len(data) -1:
                 save_file(frame_data,cam_name,last_image_name)
-
-            
-            

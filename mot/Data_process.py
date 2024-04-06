@@ -7,6 +7,8 @@ from config import cfg
 
 
 def post_process(seq):
+    # cfg.merge_from_file(f'../config/{sys.argv[1]}')
+    # cfg.freeze()
     # abs_path = cfg.DATA_DIR
     abs_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge'
     track_path = os.path.join(abs_path,seq,f'{seq}_mot.txt')
