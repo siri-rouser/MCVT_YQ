@@ -19,6 +19,7 @@ from config import cfg
 
 BATCH_SIZE = 64
 NUM_PROCESS = 1
+FLAG = 0
 def chunks(l):
     return [l[i:i+BATCH_SIZE] for i in range(0, len(l), BATCH_SIZE)] # this function is making batchs, it retuns image_list[0-63,64-127 ....]
 
@@ -85,11 +86,14 @@ def init_worker(gpu_id, _cfg):
 
 def process_input_by_worker_process(image_path_list):
     """Process_input_by_worker_process."""
+    global FLAG 
 
     reid_feat_numpy = model.extract(image_path_list) # get all reid-feat here!
     feat_dict = {}
     for index, image_path in enumerate(image_path_list):
         feat_dict[image_path] = reid_feat_numpy[index]
+    print(f'=======batch {FLAG} finished========')
+    FLAG +=1
     return feat_dict # this is also the pool_output
 
 
@@ -103,6 +107,22 @@ def load_all_data(data_path):
         cam_image_list = sorted(cam_image_list) # Sort all files with ascending sequence like 1.png 2.png
         print(f'{len(cam_image_list)} images for {cam}') # returns: 402 images for c042
         image_list += cam_image_list 
+    print(f'{len(image_list)} images in total')
+    return image_list
+
+
+def load_certain_data(data_path):
+    image_list = []
+    cams = []
+    for cam in os.listdir(data_path):
+        cams.append(cam)
+    cam = cams[-1]
+
+    image_dir = os.path.join(data_path, cam, 'dets') # .../AIC21-MTMC/datasets/algorithm_results/detected_reid1 + c40 + dets
+    cam_image_list = glob(image_dir+'/*.png') # The glob function search for all file end with .png in the image_dir, the * means any potential name
+    cam_image_list = sorted(cam_image_list) # Sort all files with ascending sequence like 1.png 2.png
+    print(f'{len(cam_image_list)} images for {cam}') # returns: 402 images for c042
+    image_list += cam_image_list 
     print(f'{len(image_list)} images in total')
     return image_list
 
@@ -134,8 +154,9 @@ def save_feature(output_path, data_path, pool_output):
 def extract_image_feat(_cfg):
     """Extract reid feat for each image, using multiprocessing."""
 
-    image_list = load_all_data(_cfg.DET_IMG_DIR) # dataset load
+    image_list = load_certain_data(_cfg.DET_IMG_DIR) # dataset load
     chunk_list = chunks(image_list) # take batchs
+    print('=============data load finish=======')
 
     num_process = NUM_PROCESS # equal to 1 here, means single GPU i guess
     gpu_ids = Queue() # returns a queue contains different GPU IDs
