@@ -44,13 +44,14 @@ class Modified_Tracker:
             # bbox = track.to_tlbr() # This value is from [mean,variance]
             bbox = track.detection_bbox[-1]
             feat = track.features[-1]
+            confidence = track.confidence[-1]
             # print(len(track.features))
          #   print(len(feat))
             # track.features = []
 
             id = track.track_id
 
-            tracks.append(Track(id, bbox,feat))
+            tracks.append(Track(id, bbox,feat,confidence))
 
         self.tracks = tracks
 
@@ -100,8 +101,10 @@ class Track:
     track_id = None
     bbox = None
     feat = None
+    confidence = None
 
-    def __init__(self, id, bbox,feat):
+    def __init__(self, id, bbox,feat,confidence):
         self.track_id = id
         self.bbox = bbox
         self.feat = feat
+        self.confidence = confidence

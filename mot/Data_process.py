@@ -34,9 +34,12 @@ def post_process(seq):
         track_id = value['track_id']
 
         if track_id not in track_feature:
-            track_feature[track_id] = []
+            track_feature[track_id] = {}
+            track_feature[track_id]['feat'] = []
+            track_feature[track_id]['conf'] = []
             track_id_lib.append(track_id)
-        track_feature[track_id].append(value['feat'])
+        track_feature[track_id]['feat'].append(value['feat'])
+        track_feature[track_id]['conf'].append(value['conf'])
       
         if track_id not in track_bbox_xy:
             track_bbox_xy[track_id] = []
@@ -53,8 +56,16 @@ def post_process(seq):
             frame_nums[track_id]=[]
       
         frame_nums[track_id].append(value['frame'])
-  
-    track_feature_avg= {track_id:np.mean(np.stack(features, axis=0), axis=0) for track_id, features in track_feature.items()}
+
+  # This part us designed for temporal attention
+    track_feature_avg = {}
+    for track_id, features in track_feature.items():
+        feats = np.array(features['feat'])  
+        confs = np.array(features['conf']) 
+
+        confs_normalized = confs / np.sum(confs)
+        weighted_avg_feat = np.dot(confs_normalized, feats) / np.sum(confs_normalized)
+        track_feature_avg[track_id] = weighted_avg_feat
     # print(track_bbox_xy[2])
 
     new_data = {}
