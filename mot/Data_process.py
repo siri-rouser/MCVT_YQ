@@ -68,6 +68,8 @@ def post_process(seq):
       
         frame_nums[track_id].append(value['frame'])
 
+# Track_id_lib is from small to big
+
   # This part us designed for temporal attention
     track_feature_avg = {}
     for track_id, features in track_feature.items():
@@ -92,23 +94,23 @@ def post_process(seq):
         track_time = end_time - start_time
 
         if travel_distance > 200 and track_time > 2:
-            new_data[track_id] = {'cam': seq, 'track_id':track_id, 'start_time':start_time, 'end_time':end_time,'feat':feat}
+            new_data[track_id] = {'cam': seq, 'track_id':track_id, 'start_time':start_time, 'end_time':end_time,'entry_pos':track_bbox_xy[track_id][0:1], 'exit_pos':track_bbox_xy[track_id][-1:], 'feat':feat}
             for i,frame_num in enumerate(frame_nums[track_id]):
                 bbox_str = " ".join(map(str, map(int, track_bbox[track_id][i])))
                 output_line = f'{str(seq)[2:]} {track_id} {frame_num} {bbox_str}\n'
                 mot_result.write(output_line)
 
         if travel_distance > 100 and track_time > 1:
-            zone_data[flag] = {'entry_pos':track_bbox_xy[track_id][0:3], 'exit_pos':track_bbox_xy[track_id][-3:],'entry_vector':[], 'exit_vector': []}
+            zone_data[flag] = {'entry_pos':track_bbox_xy[track_id][0:1], 'exit_pos':track_bbox_xy[track_id][-1:],'entry_vector':[], 'exit_vector': []}
             inital_point = np.array(track_bbox_xy[track_id][0])
             end_point = np.array(track_bbox_xy[track_id][-1])
             for index,point in enumerate(track_bbox_xy[track_id]):
-                if euclidean_dist(inital_point, point) > 60:
+                if euclidean_dist(inital_point, point) > 80:
                     entry_vector = point - inital_point
                     zone_data[flag]['entry_vector'] = entry_vector.tolist()
                     break
             for index,point in enumerate(track_bbox_xy[track_id]):
-                if euclidean_dist(end_point, point) < 60:
+                if euclidean_dist(end_point, point) < 80:
                     exit_vector = end_point - point
                     zone_data[flag]['exit_vector'] = exit_vector.tolist()
                     break

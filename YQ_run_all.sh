@@ -16,8 +16,10 @@ python pre_process.py # it generate the feature file
 cd mot
 python DeepsortTracking.py 
 python Data_process.py 
+# python auto_zone_gpt.py
 
 cd ../matching
+python Data_preprocess.py
 python Trackletmatching.py
 # Basic programming flow is like this! Re-check the file saving location...
 # 28/03/2024 checked dataflow is working on! 
