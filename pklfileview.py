@@ -1,12 +1,32 @@
 import pickle
+import argparse
+import sys
 import time
 
+parser = argparse.ArgumentParser()
+parser.add_argument("-c", "--cam", type=int)
+parser.add_argument("-f", "--file", type=str)
+args = parser.parse_args()
+
+cam = f'c0{args.cam}'
+
 # Replace this with the path to your pickle file
-pickle_file_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/c041/c041_mot_feat_new.pkl'
-pickle_test_file_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/c042/c042_new_tracklet.pkl'
-reid_feature_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_reid1/c041/c041_dets_feat.pkl'
+mot_feat_new = f'/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/{cam}/{cam}_mot_feat_new.pkl'
+new_tracklet = f'/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/{cam}/{cam}_new_tracklet.pkl'
+dets_feat = f'/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_reid1/{cam}/{cam}_dets_feat.pkl'
 # Open the pickle file and load its contents
-with open(pickle_test_file_path, 'rb') as file:
+
+if args.file == 'mot_feat_new':
+    path = mot_feat_new
+elif args.file == 'new_tracklet':
+    path = new_tracklet
+elif args.file == 'dets_feat':
+    path = dets_feat
+else:
+    print('pls input the right file arguments!')
+    sys.exit()
+
+with open(path, 'rb') as file:
     data = pickle.load(file)
 i=0
 id_list = []

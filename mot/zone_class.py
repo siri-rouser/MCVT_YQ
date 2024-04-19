@@ -36,7 +36,7 @@ class ZONE():
             elif Exit_density > 0.8:
                 self.zone_cls = 'exit_zone'
             elif Traffic_density > 0.8:
-                self.zone_cls = 'traffic_aware_zone'
+                self.zone_cls = 'undefined_zone'
             else:
                 self.zone_cls = 'undefined_zone'
         else:
@@ -85,7 +85,7 @@ class ZONE():
         rd_color = list(np.random.random(size=3) * 256)
         texton = f'Zone_id{self.zone_id} {self.zone_cls}'
         cv2.rectangle(background_img,(int(self.rect_area[0]),int(self.rect_area[1])),(int(self.rect_area[2]),int(self.rect_area[3])),rd_color,8)
-        cv2.putText(background_img, texton, (int(self.rect_area[0]),int(self.rect_area[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 1)
+        cv2.putText(background_img, texton, (int(self.rect_area[0]),int(self.rect_area[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
 
         return background_img
     

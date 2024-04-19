@@ -8,6 +8,13 @@ import MeanShift_py.mean_shift as ms
 import MeanShift_py.mean_shift_utils as ms_utils
 from zone_class import ZONE
 
+def point_in_rect(point,area):
+    min_x,min_y,max_x,max_y = area
+    if min_x < point[0] < max_x and min_y < point[1] < max_y:
+        return True
+    else:
+        return False
+
 def main(seq):
 
 #------------For data reading and initalization---------------------------
@@ -112,8 +119,8 @@ def main(seq):
             for assign in Zone:
                 Zone[assign].zone_classify(entry_pos,exit_pos)
                 Zone[assign].area_define()
-                if Zone[assign].zone_cls != 'undefined_zone':
-                    areadraw_img = Zone[assign].area_drawing(areadraw_img)
+                # if Zone[assign].zone_cls != 'undefined_zone':
+                areadraw_img = Zone[assign].area_drawing(areadraw_img)
                     # if Zone[assign].zone_cls == 'entry_zone':
                     #     areadraw_img = Zone[assign].area_drawing(areadraw_img)
 
@@ -123,26 +130,52 @@ def main(seq):
 
 
 # ------------------The rest part is for data writing---------------------
-    point_count = 0
-    for assign in Zone:
-        
-        for point in Zone[assign].points:
-            if point in entry_pos:
-                for key, value in track_data.items():
-                    # if ms_utils.euclidean_dist(point,value['entry_pos'][0]) < 0.1:
-                    if point == value['entry_pos'][0]:
-                        value['entry_zone'] = Zone[assign].zone_id
-                        point_count += 1
-                        break
-            if point in exit_pos:
-                for key, value in track_data.items():
-                    if point == value['exit_pos'][0]:
-                        value['exit_zone'] = Zone[assign].zone_id
-                        point_count += 1
-                        break    
+    # point_count = 0
+    # for assign in Zone:
+    #     for point in Zone[assign].points:
+    #         if point in entry_pos:
+    #             for key, value in track_data.items():
+    #                 # if ms_utils.euclidean_dist(point,value['entry_pos'][0]) < 0.1:
+    #                 if point == value['entry_pos'][0]:
+    #                     value['entry_zone'] = Zone[assign].zone_id
+    #                     point_count += 1
+    #                     break
+    #         if point in exit_pos:
+    #             for key, value in track_data.items():
+    #                 if point == value['exit_pos'][0]:
+    #                     value['exit_zone'] = Zone[assign].zone_id
+    #                     point_count += 1
+    #                     break    
 
-    if point_count == len(track_data)*2:
-        print('All detected')           
+    # if point_count == len(track_data)*2:
+    #     print('All detected')         
+
+# The above verison is a little bit weried, trying to rewrite the logic flow underneath
+
+    for key,value in track_data.items():
+        value['entry_zone_id'], value['entry_zone_cls'], value['exit_zone_id'], value['exit_zone_cls'] = [],[],[],[]
+        for assign in Zone:
+            if point_in_rect(value['entry_pos'][0],Zone[assign].rect_area):
+                if Zone[assign].zone_cls != 'exit_zone':
+                    if value['entry_zone_cls'] == 'entry_zone' and Zone[assign].zone_cls == 'undefined_zone':
+                        continue
+                    if value['entry_zone_cls'] == 'entry_zone' and Zone[assign].zone_cls == 'entry_zone':
+                        print('two entry zone overlapped, pls check through')
+                        print(f"previous zone_id: {value['entry_zone_id']} new zone_id: {Zone[assign].zone_id}")
+                        continue
+                    value['entry_zone_id'] = Zone[assign].zone_id
+                    value['entry_zone_cls'] = Zone[assign].zone_cls
+            if point_in_rect(value['exit_pos'][0],Zone[assign].rect_area):
+                if Zone[assign].zone_cls != 'entry_zone':
+                    if value['exit_zone_cls'] == 'exit_zone' and Zone[assign].zone_cls == 'undefined_zone':
+                        continue
+                    if value['exit_zone_cls'] == 'exit_zone' and Zone[assign].zone_cls == 'exit_zone':
+                        print('two exit zone overlapped, pls check through')
+                        print(f"previous zone_id: {value['exit_zone_id']} new zone_id: {Zone[assign].zone_id}")
+                        continue
+                    value['exit_zone_id'] = Zone[assign].zone_id
+                    value['exit_zone_cls'] = Zone[assign].zone_cls
+
 
     # Save and show the final image
     cv2.imwrite(img_save_path, background_img)
@@ -150,7 +183,6 @@ def main(seq):
     pickle.dump(track_data, open(new_track_path, 'wb'), pickle.HIGHEST_PROTOCOL)
 
 # -------------------------- END -------------------------------------
-
 
 if __name__ == "__main__":
     seqs = ['c041', 'c042', 'c043', 'c044', 'c045', 'c046']
