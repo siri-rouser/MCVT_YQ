@@ -7,6 +7,26 @@ CAM_DIST = [[  0, 40, 55,100,120,145],
             [120, 80, 65, 20,  0, 25],
             [145,105, 90, 45, 25,  0]]
 '''
+# The first element is entry_zone, second is exit_zone
+# e.g. ZONE_PAIR[0][1] = [0,7] refers to camera c041 entry_zone_0 connect with c042 exit_zone_7
+#      ZONE_PAIR[1][0] = [2,14] refers to camera c042 entry_zone_2 connect with c041 exit_zone_14
+
+ZONE_PAIR = [[[],[0,7],[],[],[],[]],
+             [[2,14],[],[8,12],[],[],[]],
+             [[],[6,3],[],[13,1],[],[]],
+             [[],[],[6,5],[],[2,3],[]],
+             [[],[],[],[7,[9,10]],[],[4,8]],
+             [[],[],[],[],[2,[8,12]],[]]]
+'''
+
+ZONE_PAIR = [[[],[0,7],[],[],[],[]],
+             [[2,14],[],[8,12],[],[],[]],
+             [[],[6,3],[],[13,1],[],[]],
+             [[],[],[6,5],[],[2,3],[]],
+             [[],[],[],[7,9],[],[4,8]],
+             [[],[],[],[],[2,8],[]]]
+'''
+
 SPEED_LIMIT = [[(0,0), (400,1300), (550,2000), (1000,2000), (1200, 2000), (1450, 2000)],
                [(400,1300), (0,0), (100,900), (600,2000), (800,2000), (1050,2000)],
                [(550,2000), (100,900), (0,0), (350,1050), (650,2000), (900, 2000)],
@@ -14,7 +34,50 @@ SPEED_LIMIT = [[(0,0), (400,1300), (550,2000), (1000,2000), (1200, 2000), (1450,
                [(1200, 2000), (800,2000), (650,2000), (150,500), (0,0), (250,900)],
                [(1450, 2000), (1050,2000), (900, 2000), (450, 2000), (250,900), (0,0)]]  
 
-def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, new_id, dis_thre=0.5,dis_remove=0.6):
+def cam_remove_gen(q_cam_ids,g_cam_ids,q_entry_zone_id,q_entry_zone_cls,q_exit_zone_id,q_exit_zone_cls,g_entry_zones,g_exit_zones,order):
+    cam_remove = []
+
+    if type(ZONE_PAIR[q_cam_ids[0]-41][g_cam_ids[0]-41][0]) == int:
+        q_entry_temp = [ZONE_PAIR[q_cam_ids[0]-41][g_cam_ids[0]-41][0]]
+    else:
+        q_entry_temp = ZONE_PAIR[q_cam_ids[0]-41][g_cam_ids[0]-41][0]
+    
+    if type(ZONE_PAIR[g_cam_ids[0]-41][q_cam_ids[0]-41][1]) == int:
+        q_exit_temp = [ZONE_PAIR[g_cam_ids[0]-41][q_cam_ids[0]-41][1]]
+    else:
+        q_exit_temp = ZONE_PAIR[g_cam_ids[0]-41][q_cam_ids[0]-41][1]
+
+    if (q_entry_zone_id in q_entry_temp) or\
+            (q_exit_zone_id in q_exit_temp) or\
+                q_entry_zone_cls =='undefined_zone' or q_exit_zone_cls =='undefined_zone':
+        for ord in order:
+            
+            # For data_structure unify
+            if type(ZONE_PAIR[g_cam_ids[0]-41][q_cam_ids[0]-41][0]) == int:
+                g_entry_temp = [ZONE_PAIR[g_cam_ids[0]-41][q_cam_ids[0]-41][0]]
+            else:
+                g_entry_temp = ZONE_PAIR[g_cam_ids[0]-41][q_cam_ids[0]-41][0]
+
+            if type(ZONE_PAIR[q_cam_ids[0]-41][g_cam_ids[0]-41][1]) == int:
+                g_exit_temp = [ZONE_PAIR[q_cam_ids[0]-41][g_cam_ids[0]-41][1]]
+            else:
+                g_exit_temp = ZONE_PAIR[q_cam_ids[0]-41][g_cam_ids[0]-41][1]
+            # For data_structure unify
+
+            if (g_entry_zones[ord][1] in g_entry_temp) or\
+                    (g_exit_zones[ord][1] in g_exit_temp) or\
+                        (g_entry_zones[ord][0] == 'undefined_zone') or (g_exit_zones[ord][0] == 'undefined_zone'):
+                cam_remove.append(False)
+            else:
+                cam_remove.append(True)
+    else: 
+        cam_remove = [True] * len(g_cam_ids)
+
+    return cam_remove
+    
+
+
+def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, q_entry_zones, q_exit_zones, g_entry_zones, g_exit_zones, new_id, dis_thre=0.54,dis_remove=0.64):
     # For Euclidean Distance (0.29,0.34)
     # (dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times,new_id)
     # new_id = np.max(g_track_ids)
@@ -28,6 +91,12 @@ def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_t
 
         q_cam_id = q_cam_ids[index]
         q_time = q_times[index]
+        q_entry_zone_cls = q_entry_zones[index][0]
+        q_entry_zone_id = q_entry_zones[index][1]
+        q_exit_zone_cls = q_exit_zones[index][0]
+        q_exit_zone_id = q_exit_zones[index][1]
+        # q_entry_pair = []
+        # q_exit_pair = []
         # g_times = np.array([time[0] for time in g_times])
         
         # check is that workable or not 
@@ -35,12 +104,20 @@ def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_t
 
         speed_limit_min = np.array([SPEED_LIMIT[q_cam_id-41][g_cam_id-41][0]/10 for g_cam_id in g_cam_ids[order]])
         speed_limit_max = np.array([SPEED_LIMIT[q_cam_id-41][g_cam_id-41][1]/10 for g_cam_id in g_cam_ids[order]])
-     
+        # q_entry_pair.append(ZONE_PAIR[q_cam_id-41][g_cam_id-41] for g_cam_id in g_cam_ids[order])
+        # q_exit_pair.append(ZONE_PAIR[g_cam_id-41][q_cam_id-41] for g_cam_id in g_cam_ids[order])
+        # | is or True | False -> True
+
+        order1=order.copy()
+
+        cam_remove = cam_remove_gen(q_cam_ids,g_cam_ids,q_entry_zone_id,q_entry_zone_cls,q_exit_zone_id,q_exit_zone_cls,g_entry_zones,g_exit_zones,order1)
+        
         remove = (g_track_ids[order] == q_track_id) | \
                 (g_cam_ids[order] == q_cam_id) | \
                 (dismat[index][order] > dis_thre) | \
                 (g_times[order][:,0] < (q_time[1] + speed_limit_min)) | \
-                (g_times[order][:,0] > (q_time[1] + speed_limit_max))
+                (g_times[order][:,0] > (q_time[1] + speed_limit_max)) | \
+                (cam_remove)
 
         # remove all track g_time < q_time + min_time and g_time > q_time + max_time
         keep = np.invert(remove)

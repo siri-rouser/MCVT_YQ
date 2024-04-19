@@ -11,10 +11,10 @@ def main(previous_reid_dict,previous_rm_dict,query_cam,gallery_cam):
     abs_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge'
     save_np_path = os.path.join(abs_path,query_cam,'dismat.npz') 
 
-    query_track_path = os.path.join(abs_path,query_cam,f'{query_cam}_tracklet.pkl')
-    gallery_track_path = os.path.join(abs_path,gallery_cam,f'{gallery_cam}_tracklet.pkl')
+    query_track_path = os.path.join(abs_path,query_cam,f'{query_cam}_new_tracklet.pkl')
+    gallery_track_path = os.path.join(abs_path,gallery_cam,f'{gallery_cam}_new_tracklet.pkl')
     cm = CostMatrix(query_track_path,gallery_track_path)
-    dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times= cm.cost_matrix(metric = 'Cosine_Distance')
+    dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, q_entry_zones,q_exit_zones,g_entry_zones,g_exit_zones = cm.cost_matrix(metric = 'Cosine_Distance')
     # print(dismat.shape)
     # save temporal results in here
     np.savez(save_np_path,distmat=dismat,q_track_ids=q_track_ids,g_track_ids=g_track_ids,q_cam_ids=q_cam_ids,g_cam_ids=g_cam_ids,q_times=q_times,g_times=g_times)
@@ -30,7 +30,7 @@ def main(previous_reid_dict,previous_rm_dict,query_cam,gallery_cam):
     else:
         new_id = 0
 
-    reid_dict,rm_dict = calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times,new_id)
+    reid_dict,rm_dict = calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, q_entry_zones, q_exit_zones, g_entry_zones, g_exit_zones, new_id)
     # print(list(reid_dict.keys()))
     if previous_reid_dict:
         reid_dict = reid_cat(previous_reid_dict,reid_dict)

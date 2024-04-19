@@ -14,8 +14,8 @@ class CostMatrix:
         pass
 
     def cost_matrix(self,metric):
-        q_feats,q_track_ids,q_cam_ids,q_times = self._track_operation(self.query_track_path)
-        g_feats,g_track_ids,g_cam_ids,g_times = self._track_operation(self.gallery_track_path)
+        q_feats,q_track_ids,q_cam_ids,q_times,q_entry_zone,q_exit_zone = self._track_operation(self.query_track_path)
+        g_feats,g_track_ids,g_cam_ids,g_times,g_entry_zone,g_exit_zone = self._track_operation(self.gallery_track_path)
 
         if metric == 'Euclidean_Distance':    
             distmat = self._euclidean_distance(q_feats, g_feats)
@@ -26,11 +26,11 @@ class CostMatrix:
 
         q_times = np.asarray(q_times)
         g_times = np.asarray(g_times)
-
-        return distmat, q_track_ids, q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times
+        # zone is a int variable
+        return distmat, q_track_ids, q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, q_entry_zone,q_exit_zone,g_entry_zone,g_exit_zone 
 
     def _track_operation(self,tracklet_path):
-        feats, track_ids, cam_ids = [], [], []
+        feats, track_ids, cam_ids, entry_zones, exit_zones = [], [], [], [], []
         times = []
         with open(tracklet_path,'rb') as f:
             track_info = pickle.load(f)
@@ -42,6 +42,8 @@ class CostMatrix:
                 track_ids.append(track_id)
                 cam_ids.append(int(value['cam'][-3:]))
                 times.append([value['start_time'],value['end_time']])
+                entry_zones.append([value['entry_zone_cls'], value['entry_zone_id']])
+                exit_zones.append([value['exit_zone_cls'], value['exit_zone_id']])
 
             feats = torch.cat(feats,0)
             track_ids = np.asarray(track_ids)
@@ -49,7 +51,7 @@ class CostMatrix:
        
         print('Got features for set, obtained {}-by-{} matrix'.format(feats.size(0), feats.size(1)))
 
-        return feats,track_ids,cam_ids,times
+        return feats,track_ids,cam_ids,times,entry_zones,exit_zones
     
     def _euclidean_distance(self, q_feats, g_feats):
         m, n = q_feats.size(0), g_feats.size(0)
