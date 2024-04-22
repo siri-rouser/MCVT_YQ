@@ -38,7 +38,7 @@ SPEED_LIMIT = [[(0,0), (400,1300), (550,2000), (1000,2000), (1200, 2000), (1450,
 def speed_limit_remove_gen(q_cam_id,g_cam_ids,q_entry_temp,q_exit_temp,q_entry_zone_id,q_exit_zone_id,q_time,g_times,order):
     # q_entry_temp is the entry_zone pair 
     speed_limit_remove = []
-    flag_entry, flag_exit = False, False
+    flag_entry, flag_exit, high_confidence_track = False, False, False
     speed_limit_min = np.array([SPEED_LIMIT[q_cam_id-41][g_cam_id-41][0]/10 for g_cam_id in g_cam_ids[order]])
     speed_limit_max = np.array([SPEED_LIMIT[q_cam_id-41][g_cam_id-41][1]/10 for g_cam_id in g_cam_ids[order]])
 
@@ -60,8 +60,10 @@ def speed_limit_remove_gen(q_cam_id,g_cam_ids,q_entry_temp,q_exit_temp,q_entry_z
     if flag_entry and flag_exit:
         print('Turn happen!!!!!! set speed_limit to empty')
         speed_limit_remove = []
+    if flag_entry or flag_exit:
+        high_confidence_track = True
 
-    return speed_limit_remove
+    return speed_limit_remove, high_confidence_track
 
 def cam_remove_gen(q_cam_ids,g_cam_ids,q_entry_zone_id,q_entry_zone_cls,q_exit_zone_id,q_exit_zone_cls,g_entry_zones,g_exit_zones,order):
     cam_remove = []
@@ -106,7 +108,8 @@ def cam_remove_gen(q_cam_ids,g_cam_ids,q_entry_zone_id,q_entry_zone_cls,q_exit_z
     
 
 
-def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, q_entry_zones, q_exit_zones, g_entry_zones, g_exit_zones, new_id, dis_thre=0.47,dis_remove=0.57):
+def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, q_entry_zones, q_exit_zones, g_entry_zones, g_exit_zones, new_id, dis_thre=0.5,dis_remove=0.6):
+    # dis_thre=0.47,dis_remove=0.57
     # For Euclidean Distance (0.29,0.34)
     # new_id = np.max(g_track_ids)
     rm_dict = {}
@@ -129,8 +132,6 @@ def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_t
         # check is that workable or not 
         order = indices[index] # the real order for the first query 
 
-        speed_limit_min = np.array([SPEED_LIMIT[q_cam_id-41][g_cam_id-41][0]/10 for g_cam_id in g_cam_ids[order]])
-        speed_limit_max = np.array([SPEED_LIMIT[q_cam_id-41][g_cam_id-41][1]/10 for g_cam_id in g_cam_ids[order]])
         # q_entry_pair.append(ZONE_PAIR[q_cam_id-41][g_cam_id-41] for g_cam_id in g_cam_ids[order])
         # q_exit_pair.append(ZONE_PAIR[g_cam_id-41][q_cam_id-41] for g_cam_id in g_cam_ids[order])
         # | is or True | False -> True
@@ -140,7 +141,14 @@ def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_t
         cam_remove,q_entry_temp,q_exit_temp = cam_remove_gen(q_cam_ids,g_cam_ids,q_entry_zone_id,q_entry_zone_cls,q_exit_zone_id,q_exit_zone_cls,g_entry_zones,g_exit_zones,order1)
 
 
-        speed_limit_remove = speed_limit_remove_gen(q_cam_id,g_cam_ids,q_entry_temp,q_exit_temp,q_entry_zone_id,q_exit_zone_id,q_time,g_times,order)
+        speed_limit_remove,high_conf_track = speed_limit_remove_gen(q_cam_id,g_cam_ids,q_entry_temp,q_exit_temp,q_entry_zone_id,q_exit_zone_id,q_time,g_times,order1)
+
+        if high_conf_track:
+            dis_thre=0.5
+            dis_remove=0.6
+        else:
+            dis_thre=0.37
+            dis_remove=0.47         
         
         remove = (g_track_ids[order] == q_track_id) | \
                 (g_cam_ids[order] == q_cam_id) | \
