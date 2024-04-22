@@ -18,7 +18,6 @@ ZONE_PAIR = [[[],[0,7],[],[],[],[]],
              [[],[],[],[7,[9,10]],[],[4,8]],
              [[],[],[],[],[2,[8,12]],[]]]
 '''
-
 ZONE_PAIR = [[[],[0,7],[],[],[],[]],
              [[2,14],[],[8,12],[],[],[]],
              [[],[6,3],[],[13,1],[],[]],
@@ -87,7 +86,6 @@ def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_t
     # print(indices)
     # num_q, num_g = dismat.shape    
     for index, q_track_id in enumerate(q_track_ids):
-
 
         q_cam_id = q_cam_ids[index]
         q_time = q_times[index]
@@ -315,7 +313,6 @@ def reid_dict_filter(reid_dict):
         for track_id in list(reid_dict[cam_id].keys()):
             if reid_dict[cam_id][track_id]['id'] in rm_id_list:
                 del reid_dict[cam_id][track_id]
-
 
     return reid_dict
 
