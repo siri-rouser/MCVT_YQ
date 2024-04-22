@@ -17,6 +17,7 @@ ZONE_PAIR = [[[],[0,7],[],[],[],[]],
              [[],[],[6,5],[],[2,3],[]],
              [[],[],[],[7,[9,10]],[],[4,8]],
              [[],[],[],[],[2,[8,12]],[]]]
+
 '''
 ZONE_PAIR = [[[],[0,7],[],[],[],[]],
              [[2,14],[],[8,12],[],[],[]],
@@ -32,6 +33,35 @@ SPEED_LIMIT = [[(0,0), (400,1300), (550,2000), (1000,2000), (1200, 2000), (1450,
                [(1000,2000), (600,2000), (350,1050), (0,0), (150,500), (450, 2000)],
                [(1200, 2000), (800,2000), (650,2000), (150,500), (0,0), (250,900)],
                [(1450, 2000), (1050,2000), (900, 2000), (450, 2000), (250,900), (0,0)]]  
+
+
+def speed_limit_remove_gen(q_cam_id,g_cam_ids,q_entry_temp,q_exit_temp,q_entry_zone_id,q_exit_zone_id,q_time,g_times,order):
+    # q_entry_temp is the entry_zone pair 
+    speed_limit_remove = []
+    flag_entry, flag_exit = False, False
+    speed_limit_min = np.array([SPEED_LIMIT[q_cam_id-41][g_cam_id-41][0]/10 for g_cam_id in g_cam_ids[order]])
+    speed_limit_max = np.array([SPEED_LIMIT[q_cam_id-41][g_cam_id-41][1]/10 for g_cam_id in g_cam_ids[order]])
+
+    if q_entry_zone_id in q_entry_temp:
+        # The entry_zone is the connected zone, which means this track might exit from c042 and then show up in c041
+        speed_limit_remove =  (g_times[order][:,0] > (q_time[1] - speed_limit_min)) | (g_times[order][:,0] < (q_time[1] - speed_limit_max)) 
+        flag_entry = True
+    elif q_exit_zone_id in q_exit_temp:
+        # the exit zone is the connected zone/
+        speed_limit_remove =  (g_times[order][:,0] < (q_time[1] + speed_limit_min)) | (g_times[order][:,0] > (q_time[1] + speed_limit_max)) 
+        flag_exit = True
+    else:
+        # the track are in undefined zone
+        speed_limit_remove1 =  (g_times[order][:,0] > (q_time[1] - speed_limit_min)) | (g_times[order][:,0] < (q_time[1] - speed_limit_max)) 
+        speed_limit_remove2 =  (g_times[order][:,0] < (q_time[1] + speed_limit_min)) | (g_times[order][:,0] > (q_time[1] + speed_limit_max)) 
+        speed_limit_remove = [x and y for x, y in zip(speed_limit_remove1, speed_limit_remove2)] # element-wise compare
+
+
+    if flag_entry and flag_exit:
+        print('Turn happen!!!!!! set speed_limit to empty')
+        speed_limit_remove = []
+
+    return speed_limit_remove
 
 def cam_remove_gen(q_cam_ids,g_cam_ids,q_entry_zone_id,q_entry_zone_cls,q_exit_zone_id,q_exit_zone_cls,g_entry_zones,g_exit_zones,order):
     cam_remove = []
@@ -72,13 +102,12 @@ def cam_remove_gen(q_cam_ids,g_cam_ids,q_entry_zone_id,q_entry_zone_cls,q_exit_z
     else: 
         cam_remove = [True] * len(g_cam_ids)
 
-    return cam_remove
+    return cam_remove,q_entry_temp,q_exit_temp
     
 
 
-def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, q_entry_zones, q_exit_zones, g_entry_zones, g_exit_zones, new_id, dis_thre=0.54,dis_remove=0.64):
+def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, q_entry_zones, q_exit_zones, g_entry_zones, g_exit_zones, new_id, dis_thre=0.47,dis_remove=0.57):
     # For Euclidean Distance (0.29,0.34)
-    # (dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times,new_id)
     # new_id = np.max(g_track_ids)
     rm_dict = {}
     reid_dict = {}
@@ -108,14 +137,15 @@ def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_t
 
         order1=order.copy()
 
-        cam_remove = cam_remove_gen(q_cam_ids,g_cam_ids,q_entry_zone_id,q_entry_zone_cls,q_exit_zone_id,q_exit_zone_cls,g_entry_zones,g_exit_zones,order1)
+        cam_remove,q_entry_temp,q_exit_temp = cam_remove_gen(q_cam_ids,g_cam_ids,q_entry_zone_id,q_entry_zone_cls,q_exit_zone_id,q_exit_zone_cls,g_entry_zones,g_exit_zones,order1)
+
+
+        speed_limit_remove = speed_limit_remove_gen(q_cam_id,g_cam_ids,q_entry_temp,q_exit_temp,q_entry_zone_id,q_exit_zone_id,q_time,g_times,order)
         
         remove = (g_track_ids[order] == q_track_id) | \
                 (g_cam_ids[order] == q_cam_id) | \
                 (dismat[index][order] > dis_thre) | \
-                (g_times[order][:,0] < (q_time[1] + speed_limit_min)) | \
-                (g_times[order][:,0] > (q_time[1] + speed_limit_max)) | \
-                (cam_remove)
+                (speed_limit_remove) | (cam_remove)
 
         # remove all track g_time < q_time + min_time and g_time > q_time + max_time
         keep = np.invert(remove)
