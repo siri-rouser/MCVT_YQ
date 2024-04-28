@@ -147,8 +147,8 @@ def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_t
             dis_thre=0.5
             dis_remove=0.6
         else:
-            dis_thre=0.37
-            dis_remove=0.47         
+            dis_thre=0.3
+            dis_remove=0.4
         
         remove = (g_track_ids[order] == q_track_id) | \
                 (g_cam_ids[order] == q_cam_id) | \

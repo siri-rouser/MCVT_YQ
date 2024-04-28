@@ -25,6 +25,8 @@ def main(seq):
     abs_img_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detection/images/test/S06/'
     img_save_path = os.path.join(abs_path, seq, 'auto_zone_gen.jpg')
     img_save_path1 = os.path.join(abs_path, seq, 'auto_zone_draw.jpg')
+    exit_zone_img_path = os.path.join(abs_path, seq, 'exit_zone_draw.jpg')
+    entry_zone_img_path = os.path.join(abs_path, seq, 'entry_zone_draw.jpg')
     img_path = os.path.join(abs_img_path, seq, 'img1/img000000.jpg')
     background_img = cv2.imread(img_path)
 
@@ -130,28 +132,6 @@ def main(seq):
 
 
 # ------------------The rest part is for data writing---------------------
-    # point_count = 0
-    # for assign in Zone:
-    #     for point in Zone[assign].points:
-    #         if point in entry_pos:
-    #             for key, value in track_data.items():
-    #                 # if ms_utils.euclidean_dist(point,value['entry_pos'][0]) < 0.1:
-    #                 if point == value['entry_pos'][0]:
-    #                     value['entry_zone'] = Zone[assign].zone_id
-    #                     point_count += 1
-    #                     break
-    #         if point in exit_pos:
-    #             for key, value in track_data.items():
-    #                 if point == value['exit_pos'][0]:
-    #                     value['exit_zone'] = Zone[assign].zone_id
-    #                     point_count += 1
-    #                     break    
-
-    # if point_count == len(track_data)*2:
-    #     print('All detected')         
-
-# The above verison is a little bit weried, trying to rewrite the logic flow underneath
-
     for key,value in track_data.items():
         value['entry_zone_id'], value['entry_zone_cls'], value['exit_zone_id'], value['exit_zone_cls'] = [],[],[],[]
         for assign in Zone:
@@ -179,7 +159,7 @@ def main(seq):
 
     # Save and show the final image
     cv2.imwrite(img_save_path, background_img)
-    cv2.imwrite(img_save_path1,areadraw_img)
+    cv2.imwrite(img_save_path1, areadraw_img)
     pickle.dump(track_data, open(new_track_path, 'wb'), pickle.HIGHEST_PROTOCOL)
 
 # -------------------------- END -------------------------------------
