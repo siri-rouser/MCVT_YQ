@@ -16,7 +16,8 @@ python pre_process.py # it generate the feature file
 cd mot
 python DeepsortTracking.py 
 python Data_process.py 
-python auto_zone_gpt.py
+python auto_zone.py
+python camera_link.py
 
 cd ../matching
 python Trackletmatching.py

@@ -66,8 +66,6 @@ def main(seq):
         bbox_data[cluster_id].extend(zone_data[f'{real_index}'][position_key])
 
 #------------END---------------------------
-
-
     # Process each cluster's data
     bbox_results = {}
     total_clusters = 0
@@ -83,6 +81,8 @@ def main(seq):
     cat_original_points = []
     cat_shift_points = []
     areadraw_img = background_img.copy()
+    entry_zone_img = background_img.copy()
+    exit_zone_img = background_img.copy()
     
     for cluster_id, result in bbox_results.items():
         # it returns the result for certain vector cluster
@@ -119,10 +119,16 @@ def main(seq):
         print('error: point and assign matrix not matched') if len(original_points) != len(assignments) else None
         if cluster_id == max_cluster_id:
             for assign in Zone:
+                if len(Zone[assign].points) < 3:
+                    Zone[assign] = None # be careful about this
+                    continue
                 Zone[assign].zone_classify(entry_pos,exit_pos)
                 Zone[assign].area_define()
                 # if Zone[assign].zone_cls != 'undefined_zone':
                 areadraw_img = Zone[assign].area_drawing(areadraw_img)
+                entry_zone_img = Zone[assign].required_area_drawing(entry_zone_img,'entry_zone')
+                exit_zone_img = Zone[assign].required_area_drawing(exit_zone_img,'exit_zone')
+
                     # if Zone[assign].zone_cls == 'entry_zone':
                     #     areadraw_img = Zone[assign].area_drawing(areadraw_img)
 
@@ -135,31 +141,34 @@ def main(seq):
     for key,value in track_data.items():
         value['entry_zone_id'], value['entry_zone_cls'], value['exit_zone_id'], value['exit_zone_cls'] = [],[],[],[]
         for assign in Zone:
-            if point_in_rect(value['entry_pos'][0],Zone[assign].rect_area):
-                if Zone[assign].zone_cls != 'exit_zone':
-                    if value['entry_zone_cls'] == 'entry_zone' and Zone[assign].zone_cls == 'undefined_zone':
-                        continue
-                    if value['entry_zone_cls'] == 'entry_zone' and Zone[assign].zone_cls == 'entry_zone':
-                        print('two entry zone overlapped, pls check through')
-                        print(f"previous zone_id: {value['entry_zone_id']} new zone_id: {Zone[assign].zone_id}")
-                        continue
-                    value['entry_zone_id'] = Zone[assign].zone_id
-                    value['entry_zone_cls'] = Zone[assign].zone_cls
-            if point_in_rect(value['exit_pos'][0],Zone[assign].rect_area):
-                if Zone[assign].zone_cls != 'entry_zone':
-                    if value['exit_zone_cls'] == 'exit_zone' and Zone[assign].zone_cls == 'undefined_zone':
-                        continue
-                    if value['exit_zone_cls'] == 'exit_zone' and Zone[assign].zone_cls == 'exit_zone':
-                        print('two exit zone overlapped, pls check through')
-                        print(f"previous zone_id: {value['exit_zone_id']} new zone_id: {Zone[assign].zone_id}")
-                        continue
-                    value['exit_zone_id'] = Zone[assign].zone_id
-                    value['exit_zone_cls'] = Zone[assign].zone_cls
+            if Zone[assign] is not None:
+                if point_in_rect(value['entry_pos'][0],Zone[assign].rect_area):
+                    if Zone[assign].zone_cls != 'exit_zone':
+                        if value['entry_zone_cls'] == 'entry_zone' and Zone[assign].zone_cls == 'undefined_zone':
+                            continue
+                        if value['entry_zone_cls'] == 'entry_zone' and Zone[assign].zone_cls == 'entry_zone':
+                            print('two entry zone overlapped, pls check through')
+                            print(f"previous zone_id: {value['entry_zone_id']} new zone_id: {Zone[assign].zone_id}")
+                            continue
+                        value['entry_zone_id'] = Zone[assign].zone_id
+                        value['entry_zone_cls'] = Zone[assign].zone_cls
+                if point_in_rect(value['exit_pos'][0],Zone[assign].rect_area):
+                    if Zone[assign].zone_cls != 'entry_zone':
+                        if value['exit_zone_cls'] == 'exit_zone' and Zone[assign].zone_cls == 'undefined_zone':
+                            continue
+                        if value['exit_zone_cls'] == 'exit_zone' and Zone[assign].zone_cls == 'exit_zone':
+                            print('two exit zone overlapped, pls check through')
+                            print(f"previous zone_id: {value['exit_zone_id']} new zone_id: {Zone[assign].zone_id}")
+                            continue
+                        value['exit_zone_id'] = Zone[assign].zone_id
+                        value['exit_zone_cls'] = Zone[assign].zone_cls
 
 
     # Save and show the final image
     cv2.imwrite(img_save_path, background_img)
     cv2.imwrite(img_save_path1, areadraw_img)
+    cv2.imwrite(entry_zone_img_path, entry_zone_img)
+    cv2.imwrite(exit_zone_img_path, exit_zone_img)
     pickle.dump(track_data, open(new_track_path, 'wb'), pickle.HIGHEST_PROTOCOL)
 
 # -------------------------- END -------------------------------------

@@ -96,7 +96,7 @@ def main(seq):
                 confidence = track.confidence
                 output_line = f"{frame_number} {track_id} {x1} {y1} {x2} {y2}\n"
                 final_result.write(output_line)
-                mot_feat_data[image_name] = {'bbox':bbox,'frame':frame_number,'track_id':track_id,'feat':feat,'conf':confidence}
+                mot_feat_data[image_name] = {'bbox':bbox,'frame':frame_number,'track_id':track_id,'feat':feat,'conf':confidence} # this confidence is bbox confidence
 
                 cv2.rectangle(frame_img, (int(x1), int(y1)), (int(x2), int(y2)), (colors[track_id % len(colors)]), 3)
                 cv2.putText(frame_img, str(track_id), (int(x1), int(y1)-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (colors[track_id % len(colors)]), 2)

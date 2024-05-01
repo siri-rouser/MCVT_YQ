@@ -35,8 +35,8 @@ class ZONE():
                 self.zone_cls = 'entry_zone'
             elif Exit_density > 0.8:
                 self.zone_cls = 'exit_zone'
-            elif Traffic_density > 0.8:
-                self.zone_cls = 'undefined_zone'
+            elif Traffic_density > 0.7:
+                self.zone_cls = 'traffic_awareness_zone'
             else:
                 self.zone_cls = 'undefined_zone'
         else:
@@ -89,6 +89,14 @@ class ZONE():
 
         return background_img
     
+    def required_area_drawing(self, background_img, require):
+        if self.zone_cls == require:
+            rd_color = list(np.random.random(size=3) * 256)
+            text = f'Zone_id{self.zone_id} {self.zone_cls}'
+            cv2.rectangle(background_img,(int(self.rect_area[0]),int(self.rect_area[1])),(int(self.rect_area[2]),int(self.rect_area[3])),rd_color,8)
+            cv2.putText(background_img, text, (int(self.rect_area[0]),int(self.rect_area[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+
+        return background_img
 
 class cross_zone():
     def __init__(self) -> None:

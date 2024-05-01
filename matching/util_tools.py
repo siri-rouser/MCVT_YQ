@@ -204,8 +204,6 @@ def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_t
         
         # this is the second loop
         for i in range(len(sel_g_track_list)):
-            # print(f'cam_id:{sel_g_camids_list[i]}')
-            # print(f'track_id:{sel_g_track_list[i]}')
             if sel_g_camids_list[i] in list(reid_dict.keys()):
                 if sel_g_track_list[i] in list(reid_dict[sel_g_camids_list[i]]): 
                     if reid_dict[sel_g_camids_list[i]][sel_g_track_list[i]]["dis"]>selg_dis_list[i]:
@@ -371,3 +369,92 @@ def xytoxywh(input_path,output_path):
             # Write the modified line to the new file
             output_line = f"{cam_id} {track_id} {frame_num} {x1} {y1} {w} {h} -1 -1\n"
             f_out.write(output_line)
+
+def original_calc_reid(distmat,q_pids,g_pids,q_camids,g_camids,dis_thre=0.8,dis_remove=0.8):
+    #?dis_remove is the hard remove, dis_thre is considering remove?d
+    # q_pids is the query_track_id, g_pids is the gallery_track_id
+
+    new_id = np.max(g_pids) # why???
+    # print(np.max(g_pids))
+    # print(np.max(q_pids))
+    rm_dict = {}
+    reid_dict = {}
+    indices = np.argsort(distmat, axis=1)
+    num_q, num_g = distmat.shape
+    # print(np.min(distmat))
+    for q_idx in range(num_q):
+        q_pid = q_pids[q_idx]
+        q_camid = q_camids[q_idx] 
+        order = indices[q_idx] # the order for the first query vs all gallery items
+        remove = (g_pids[order] == q_pid) | (g_camids[order] == q_camid) | (distmat[q_idx][order]>dis_thre) 
+        # | it means and. e.g. True | Flase returns True
+        # return a bool array
+        # Like [True False True False]
+        keep = np.invert(remove) # bit-wise inversion
+
+        remove_hard = (g_pids[order] == q_pid) | (g_camids[order] == q_camid) | (distmat[q_idx][order]>dis_remove)
+        keep_hard = np.invert(remove_hard)
+        if True not in keep_hard: # nothing is been kept
+            if q_camid not in list(rm_dict.keys()):
+                rm_dict[q_camid] = {}
+            rm_dict[q_camid][q_pid] = True
+        sel_g_dis = distmat[q_idx][order][keep] # selected_gallery_distance_matrix
+        sel_g_pids = g_pids[order][keep]
+        sel_g_camids = g_camids[order][keep]
+        sel_g_pids_list = []
+        sel_g_camids_list = []
+        selg_dis_list = []
+        
+
+        for i in range(sel_g_pids.shape[0]): # should be the length of sel_g_ids, it should be 1xlen(shape), in the case it only has one dimension so would be shape
+            sel_pid =  sel_g_pids[i]
+            sel_cam = sel_g_camids[i]
+            sel_dis = sel_g_dis[i]
+            if sel_cam not in sel_g_camids_list and sel_cam!=q_camid:
+                sel_g_pids_list.append(sel_pid)
+                sel_g_camids_list.append(sel_cam)
+                selg_dis_list.append(sel_dis)
+                
+    #-------------------------------initalize the reid_dict()--------------------------
+        if len(selg_dis_list)>0:
+            # camera is the first layer and query id is the second
+            new_id+=1 # assgining new id xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+            if q_camid in list(reid_dict.keys()): # initalize [cam_id] in the dict reid_dict 
+                if q_pid in list(reid_dict[q_camid]): # is matched before
+                    if reid_dict[q_camid][q_pid]["dis"]>min(selg_dis_list):
+                        reid_dict[q_camid][q_pid]["dis"] = min(selg_dis_list)
+                        reid_dict[q_camid][q_pid]["id"] = new_id # give the query part a new id
+                else:
+                    reid_dict[q_camid][q_pid] = {"dis":min(selg_dis_list),"id":new_id}
+            else:
+                reid_dict[q_camid] = {}
+                reid_dict[q_camid][q_pid] = {"dis":min(selg_dis_list),"id":new_id}#  'distance' and 'id' in the dict() 
+
+    #-----------------------update the reid_dict()-----------------------------------
+
+        for i in range(len(sel_g_pids_list)):
+            if sel_g_camids_list[i] in list(reid_dict.keys()):
+                if sel_g_pids_list[i] in list(reid_dict[sel_g_camids_list[i]]):
+                    if reid_dict[sel_g_camids_list[i]][sel_g_pids_list[i]]["dis"]>selg_dis_list[i]:
+                        reid_dict[sel_g_camids_list[i]][sel_g_pids_list[i]]["dis"] = selg_dis_list[i]
+                        reid_dict[sel_g_camids_list[i]][sel_g_pids_list[i]]["id"] = new_id
+                else:
+                    reid_dict[sel_g_camids_list[i]][sel_g_pids_list[i]] = {"dis":selg_dis_list[i],"id":new_id}
+            else:
+                reid_dict[sel_g_camids_list[i]] = {}
+                reid_dict[sel_g_camids_list[i]][sel_g_pids_list[i]] = {"dis":selg_dis_list[i],"id":new_id}
+
+
+    total_distance = 0
+    num = 0
+    ave_distance = 0
+    for cam_id in reid_dict:
+        num += len(reid_dict[cam_id].keys())
+        for track_id in reid_dict[cam_id]:
+            total_distance += reid_dict[cam_id][track_id]['dis']
+    if num != 0:
+        ave_distance = total_distance / num
+    else:
+        ave_distance = 100000000000
+
+    return reid_dict, rm_dict, ave_distance, num

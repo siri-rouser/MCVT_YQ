@@ -72,6 +72,7 @@ def post_process(seq):
 
   # This part us designed for temporal attention
     track_feature_avg = {}
+    track_conf_avg = {}
     for track_id, features in track_feature.items():
         feats = np.array(features['feat'])  
         confs = np.array(features['conf']) 
@@ -79,6 +80,7 @@ def post_process(seq):
         confs_normalized = confs / np.sum(confs)
         weighted_avg_feat = np.dot(confs_normalized, feats) / np.sum(confs_normalized)
         track_feature_avg[track_id] = weighted_avg_feat
+        track_conf_avg[track_id] = np.average(confs)
     # print(track_bbox_xy[2])
 
     new_data = {}
@@ -86,6 +88,7 @@ def post_process(seq):
     flag = 0
     for track_id in track_id_lib: # get how many tracklet we got(total number of track_id)
         feat = track_feature_avg[track_id]
+        conf = track_conf_avg[track_id]
         start_frame, end_frame = min(frame_nums[track_id]), max(frame_nums[track_id])
         travel_distance = np.linalg.norm(np.array(track_bbox_xy[track_id][-1]) - np.array(track_bbox_xy[track_id][0]))
 
@@ -94,7 +97,7 @@ def post_process(seq):
         track_time = end_time - start_time
 
         if travel_distance > 200 and track_time > 2:
-            new_data[track_id] = {'cam': seq, 'track_id':track_id, 'start_time':start_time, 'end_time':end_time,'entry_pos':track_bbox_xy[track_id][0:1], 'exit_pos':track_bbox_xy[track_id][-1:], 'feat':feat}
+            new_data[track_id] = {'cam': seq, 'track_id':track_id, 'start_time':start_time, 'end_time':end_time,'entry_pos':track_bbox_xy[track_id][0:1], 'exit_pos':track_bbox_xy[track_id][-1:], 'feat':feat, 'conf':conf}
             for i,frame_num in enumerate(frame_nums[track_id]):
                 bbox_str = " ".join(map(str, map(int, track_bbox[track_id][i])))
                 output_line = f'{str(seq)[2:]} {track_id} {frame_num} {bbox_str}\n'
