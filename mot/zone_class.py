@@ -13,6 +13,11 @@ class ZONE():
 
     def zone_append(self,point):
         self.points.append(point)
+    
+    def zone_merge(self,other_zone):
+        for point in other_zone.points:
+            self.points.append(point)
+        self.zone_id = max(self.zone_id,other_zone.zone_id)
 
     def zone_classify(self,entry_pos,exit_pos):
         # The input is zone_data
@@ -89,8 +94,8 @@ class ZONE():
 
         return background_img
     
-    def required_area_drawing(self, background_img, require):
-        if self.zone_cls == require:
+    def required_area_drawing(self, background_img, requirement):
+        if self.zone_cls == requirement:
             rd_color = list(np.random.random(size=3) * 256)
             text = f'Zone_id{self.zone_id} {self.zone_cls}'
             cv2.rectangle(background_img,(int(self.rect_area[0]),int(self.rect_area[1])),(int(self.rect_area[2]),int(self.rect_area[3])),rd_color,8)

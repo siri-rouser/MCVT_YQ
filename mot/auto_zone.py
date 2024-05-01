@@ -14,6 +14,17 @@ def point_in_rect(point,area):
         return True
     else:
         return False
+    
+def rectangles_overlap(rect1, rect2):
+
+    min_x1, min_y1, max_x1, max_y1 = rect1
+    min_x2, min_y2, max_x2, max_y2 = rect2
+    
+    # Check if there's a horizontal and vertical overlap
+    horizontal_overlap = (min_x1 <= max_x2) and (min_x2 <= max_x1)
+    vertical_overlap = (min_y1 <= max_y2) and (min_y2 <= max_y1)
+    
+    return horizontal_overlap and vertical_overlap
 
 def main(seq):
 
@@ -125,9 +136,24 @@ def main(seq):
                 Zone[assign].zone_classify(entry_pos,exit_pos)
                 Zone[assign].area_define()
                 # if Zone[assign].zone_cls != 'undefined_zone':
-                areadraw_img = Zone[assign].area_drawing(areadraw_img)
-                entry_zone_img = Zone[assign].required_area_drawing(entry_zone_img,'entry_zone')
-                exit_zone_img = Zone[assign].required_area_drawing(exit_zone_img,'exit_zone')
+
+            for assign1 in Zone:
+                for assign2 in Zone:
+                    if assign1 != assign2:
+                        if (Zone[assign1] is not None) and (Zone[assign2] is not None):
+                            if Zone[assign1].zone_cls == Zone[assign2].zone_cls and Zone[assign2].zone_cls != 'undefined_zone':
+                                if rectangles_overlap(Zone[assign1].rect_area,Zone[assign2].rect_area):
+                                    Zone[assign1].zone_merge(Zone[assign2])
+                                    Zone[assign2] = None
+                                    Zone[assign1].area_define()
+                                    print('yes')
+                                    continue
+
+            for assign in Zone:
+                if Zone[assign] is not None:
+                    areadraw_img = Zone[assign].area_drawing(areadraw_img)
+                    entry_zone_img = Zone[assign].required_area_drawing(entry_zone_img,'entry_zone')
+                    exit_zone_img = Zone[assign].required_area_drawing(exit_zone_img,'exit_zone')
 
                     # if Zone[assign].zone_cls == 'entry_zone':
                     #     areadraw_img = Zone[assign].area_drawing(areadraw_img)

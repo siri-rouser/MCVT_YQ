@@ -34,8 +34,10 @@ def main(seq):
     colors = [(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)) for j in range(20)]
 
     video_out_path = os.path.join(abs_path, seq, 'out1.mp4')
-
-    cap_out = cv2.VideoWriter(video_out_path, cv2.VideoWriter_fourcc(*'mp4v'), 10,(1280,960))
+    if seq in ['c041','c042','c043','c044']:
+        cap_out = cv2.VideoWriter(video_out_path, cv2.VideoWriter_fourcc(*'mp4v'), 10,(1280,960))
+    else:
+        cap_out = cv2.VideoWriter(video_out_path, cv2.VideoWriter_fourcc(*'mp4v'), 10,(1280,720))
  #   mot_feat_data = {}
     feat_pkl_file = os.path.join(abs_path,seq,f'{seq}_mot_feat_new.pkl')
     mot_feat_data = {}
