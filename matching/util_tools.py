@@ -1,4 +1,5 @@
 import numpy as np
+import json
 '''
 CAM_DIST = [[  0, 40, 55,100,120,145],
             [ 40,  0, 15, 60, 80,105],
@@ -11,12 +12,12 @@ CAM_DIST = [[  0, 40, 55,100,120,145],
 # e.g. ZONE_PAIR[0][1] = [0,7] refers to camera c041 entry_zone_0 connect with c042 exit_zone_7
 #      ZONE_PAIR[1][0] = [2,14] refers to camera c042 entry_zone_2 connect with c041 exit_zone_14
 
-ZONE_PAIR = [[[],[0,7],[],[],[],[]],
-             [[2,14],[],[8,12],[],[],[]],
-             [[],[6,3],[],[13,1],[],[]],
-             [[],[],[6,5],[],[2,3],[]],
-             [[],[],[],[7,[9,10]],[],[4,8]],
-             [[],[],[],[],[2,[8,12]],[]]]
+# ZONE_PAIR = [[[],[0,7],[],[],[],[]],
+#              [[2,14],[],[8,12],[],[],[]],
+#              [[],[6,3],[],[13,1],[],[]],
+#              [[],[],[6,5],[],[2,3],[]],
+#              [[],[],[],[7,[9,10]],[],[4,8]],
+#              [[],[],[],[],[2,[8,12]],[]]]
 
 '''
 ZONE_PAIR = [[[],[0,7],[],[],[],[]],
@@ -35,6 +36,25 @@ SPEED_LIMIT = [[(0,0), (400,1300), (550,2000), (1000,2000), (1200, 2000), (1450,
                [(1450, 2000), (1050,2000), (900, 2000), (450, 2000), (250,900), (0,0)]]  
 
 
+def convert_keys_to_int(obj):
+    if isinstance(obj, dict):
+        new_dict = {}
+        for k, v in obj.items():
+            try:
+                # Convert key to an integer if possible
+                key = int(k)
+            except ValueError:
+                # Keep the key as is if it cannot be converted to an integer
+                key = k
+            new_dict[key] = convert_keys_to_int(v)  # Recursively apply to values
+        return new_dict
+    elif isinstance(obj, list):
+        # Apply conversion to each element in the list
+        return [convert_keys_to_int(element) for element in obj]
+    else:
+        # Return the item as is if it is not a dictionary or list
+        return obj
+
 def speed_limit_remove_gen(q_cam_id,g_cam_ids,q_entry_temp,q_exit_temp,q_entry_zone_id,q_exit_zone_id,q_time,g_times,order):
     # q_entry_temp is the entry_zone pair 
     speed_limit_remove = []
@@ -42,11 +62,11 @@ def speed_limit_remove_gen(q_cam_id,g_cam_ids,q_entry_temp,q_exit_temp,q_entry_z
     speed_limit_min = np.array([SPEED_LIMIT[q_cam_id-41][g_cam_id-41][0]/10 for g_cam_id in g_cam_ids[order]])
     speed_limit_max = np.array([SPEED_LIMIT[q_cam_id-41][g_cam_id-41][1]/10 for g_cam_id in g_cam_ids[order]])
 
-    if q_entry_zone_id in q_entry_temp:
+    if q_entry_zone_id == q_entry_temp:
         # The entry_zone is the connected zone, which means this track might exit from c042 and then show up in c041
         speed_limit_remove =  (g_times[order][:,0] > (q_time[1] - speed_limit_min)) | (g_times[order][:,0] < (q_time[1] - speed_limit_max)) 
         flag_entry = True
-    elif q_exit_zone_id in q_exit_temp:
+    elif q_exit_zone_id == q_exit_temp:
         # the exit zone is the connected zone/
         speed_limit_remove =  (g_times[order][:,0] < (q_time[1] + speed_limit_min)) | (g_times[order][:,0] > (q_time[1] + speed_limit_max)) 
         flag_exit = True
@@ -60,14 +80,15 @@ def speed_limit_remove_gen(q_cam_id,g_cam_ids,q_entry_temp,q_exit_temp,q_entry_z
     if flag_entry and flag_exit:
         print('Turn happen!!!!!! set speed_limit to empty')
         speed_limit_remove = []
+
     if flag_entry or flag_exit:
         high_confidence_track = True
 
     return speed_limit_remove, high_confidence_track
 
+
 def cam_remove_gen(q_cam_ids,g_cam_ids,q_entry_zone_id,q_entry_zone_cls,q_exit_zone_id,q_exit_zone_cls,g_entry_zones,g_exit_zones,order):
     cam_remove = []
-
     if type(ZONE_PAIR[q_cam_ids[0]-41][g_cam_ids[0]-41][0]) == int:
         q_entry_temp = [ZONE_PAIR[q_cam_ids[0]-41][g_cam_ids[0]-41][0]]
     else:
@@ -77,7 +98,6 @@ def cam_remove_gen(q_cam_ids,g_cam_ids,q_entry_zone_id,q_entry_zone_cls,q_exit_z
         q_exit_temp = [ZONE_PAIR[g_cam_ids[0]-41][q_cam_ids[0]-41][1]]
     else:
         q_exit_temp = ZONE_PAIR[g_cam_ids[0]-41][q_cam_ids[0]-41][1]
-
     if (q_entry_zone_id in q_entry_temp) or\
             (q_exit_zone_id in q_exit_temp) or\
                 q_entry_zone_cls =='undefined_zone' or q_exit_zone_cls =='undefined_zone':
@@ -88,15 +108,45 @@ def cam_remove_gen(q_cam_ids,g_cam_ids,q_entry_zone_id,q_entry_zone_cls,q_exit_z
                 g_entry_temp = [ZONE_PAIR[g_cam_ids[0]-41][q_cam_ids[0]-41][0]]
             else:
                 g_entry_temp = ZONE_PAIR[g_cam_ids[0]-41][q_cam_ids[0]-41][0]
-
             if type(ZONE_PAIR[q_cam_ids[0]-41][g_cam_ids[0]-41][1]) == int:
                 g_exit_temp = [ZONE_PAIR[q_cam_ids[0]-41][g_cam_ids[0]-41][1]]
             else:
                 g_exit_temp = ZONE_PAIR[q_cam_ids[0]-41][g_cam_ids[0]-41][1]
             # For data_structure unify
-
             if (g_entry_zones[ord][1] in g_entry_temp) or\
                     (g_exit_zones[ord][1] in g_exit_temp) or\
+                        (g_entry_zones[ord][0] == 'undefined_zone') or (g_exit_zones[ord][0] == 'undefined_zone'):
+                cam_remove.append(False)
+            else:
+                cam_remove.append(True)
+    else: 
+        cam_remove = [True] * len(g_cam_ids)
+    return cam_remove,q_entry_temp,q_exit_temp
+
+
+def cam_remove_gen1(q_cam_ids,g_cam_ids,q_entry_zone_id,q_entry_zone_cls,q_exit_zone_id,q_exit_zone_cls,g_entry_zones,g_exit_zones,order):
+    cam_remove = []
+    zone_pair_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/cam_pair.json'
+    with open(zone_pair_path) as f:
+        ZONE_PAIR = json.load(f)
+
+    ZONE_PAIR = convert_keys_to_int(ZONE_PAIR)
+
+    q_entry_temp = ZONE_PAIR[q_cam_ids[0]][g_cam_ids[0]]['entry_exit_pair'][0]
+
+    q_exit_temp = ZONE_PAIR[g_cam_ids[0]][q_cam_ids[0]]['entry_exit_pair'][1]
+
+    if (q_entry_zone_id == q_entry_temp) or\
+            (q_exit_zone_id == q_exit_temp) or\
+                q_entry_zone_cls =='undefined_zone' or q_exit_zone_cls =='undefined_zone':
+        for ord in order:
+            
+            # For data_structure unify
+            g_entry_temp = ZONE_PAIR[g_cam_ids[0]][q_cam_ids[0]]['entry_exit_pair'][0]
+            g_exit_temp = ZONE_PAIR[q_cam_ids[0]][g_cam_ids[0]]['entry_exit_pair'][1]
+
+            if (g_entry_zones[ord][1] == g_entry_temp) or\
+                    (g_exit_zones[ord][1] == g_exit_temp) or\
                         (g_entry_zones[ord][0] == 'undefined_zone') or (g_exit_zones[ord][0] == 'undefined_zone'):
                 cam_remove.append(False)
             else:
@@ -138,17 +188,17 @@ def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_t
 
         order1=order.copy()
 
-        cam_remove,q_entry_temp,q_exit_temp = cam_remove_gen(q_cam_ids,g_cam_ids,q_entry_zone_id,q_entry_zone_cls,q_exit_zone_id,q_exit_zone_cls,g_entry_zones,g_exit_zones,order1)
+        cam_remove,q_entry_temp,q_exit_temp = cam_remove_gen1(q_cam_ids,g_cam_ids,q_entry_zone_id,q_entry_zone_cls,q_exit_zone_id,q_exit_zone_cls,g_entry_zones,g_exit_zones,order1)
 
 
         speed_limit_remove,high_conf_track = speed_limit_remove_gen(q_cam_id,g_cam_ids,q_entry_temp,q_exit_temp,q_entry_zone_id,q_exit_zone_id,q_time,g_times,order1)
 
         if high_conf_track:
-            dis_thre=0.5
-            dis_remove=0.6
+            dis_thre=0.52
+            dis_remove=0.62
         else:
-            dis_thre=0.3
-            dis_remove=0.4
+            dis_thre=0.42
+            dis_remove=0.52
         
         remove = (g_track_ids[order] == q_track_id) | \
                 (g_cam_ids[order] == q_cam_id) | \
@@ -370,7 +420,7 @@ def xytoxywh(input_path,output_path):
             output_line = f"{cam_id} {track_id} {frame_num} {x1} {y1} {w} {h} -1 -1\n"
             f_out.write(output_line)
 
-def original_calc_reid(distmat,q_pids,g_pids,q_camids,g_camids,dis_thre=0.8,dis_remove=0.8):
+def original_calc_reid(distmat,q_pids,g_pids,q_camids,g_camids,dis_thre=0.2,dis_remove=0.2):
     #?dis_remove is the hard remove, dis_thre is considering remove?d
     # q_pids is the query_track_id, g_pids is the gallery_track_id
 
@@ -455,6 +505,6 @@ def original_calc_reid(distmat,q_pids,g_pids,q_camids,g_camids,dis_thre=0.8,dis_
     if num != 0:
         ave_distance = total_distance / num
     else:
-        ave_distance = 100000000000
+        ave_distance = 10
 
     return reid_dict, rm_dict, ave_distance, num
