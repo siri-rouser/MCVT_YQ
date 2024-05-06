@@ -41,7 +41,7 @@ class ZONE():
             elif Exit_density > 0.8:
                 self.zone_cls = 'exit_zone'
             elif Traffic_density > 0.7:
-                self.zone_cls = 'traffic_awareness_zone'
+                self.zone_cls = 'undefined_zone' # didn't really see how setting traffic awareness zone influence the pairing result
             else:
                 self.zone_cls = 'undefined_zone'
         else:

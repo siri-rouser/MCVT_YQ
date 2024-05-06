@@ -137,6 +137,7 @@ def main(seq):
                 Zone[assign].area_define()
                 # if Zone[assign].zone_cls != 'undefined_zone':
 
+            # for zone_overlapping checking
             for assign1 in Zone:
                 for assign2 in Zone:
                     if assign1 != assign2:
@@ -164,11 +165,12 @@ def main(seq):
 
 
 # ------------------The rest part is for data writing---------------------
+# for adding all those things into track_data
     for key,value in track_data.items():
         value['entry_zone_id'], value['entry_zone_cls'], value['exit_zone_id'], value['exit_zone_cls'] = [],[],[],[]
         for assign in Zone:
             if Zone[assign] is not None:
-                if point_in_rect(value['entry_pos'][0],Zone[assign].rect_area):
+                if point_in_rect(value['entry_pos'][0],Zone[assign].rect_area): # if they are in any exit_zone or entry_zone
                     if Zone[assign].zone_cls != 'exit_zone':
                         if value['entry_zone_cls'] == 'entry_zone' and Zone[assign].zone_cls == 'undefined_zone':
                             continue

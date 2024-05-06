@@ -50,7 +50,6 @@ def main(seq):
             det_file_path = os.path.join(path_det, frame_img.replace('.jpg','.txt')) # get the imgxxxxxx.txt file path here
             feat_file_path = os.path.join(path_feat,frame_img.replace('.jpg', '.json')) # get the imgxxxxxx.json file path here
             
-
             frame_img = cv2.imread(frame_img_path)
 
             feats = []

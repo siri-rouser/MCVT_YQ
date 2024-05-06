@@ -14,6 +14,7 @@ GroundTurth_pair = {41:{42:{'entry_exit_pair':[0,7]}},
                     45:{44:{'entry_exit_pair':[[7,9],[7,10]]},46:{'entry_exit_pair':[4,8]}},
                     46:{45:{'entry_exit_pair':[[2,8],[2,12]]}}}
 
+
 def convert_numpy(obj):
     if isinstance(obj, np.integer):
         return int(obj)
@@ -29,6 +30,7 @@ def convert_numpy(obj):
         return tuple(convert_numpy(elem) for elem in obj)
     else:
         return obj
+
 
 
 def pair_res_filter(pair_res):
@@ -48,7 +50,16 @@ def pair_res_filter(pair_res):
 
     return pair_res
 
-
+def high_conf_filter(data, conf_threshold=0):
+    #print('previous len of data', len(data))
+    keys_to_delete = []
+    for track_id in data:
+        if data[track_id]['conf'] < conf_threshold:
+            keys_to_delete.append(track_id)
+    for track_id in keys_to_delete:
+        del data[track_id]
+    #print('after processing', len(data))
+    return data
 
 def compare_entry_exit_pairs(generated_dict, ground_truth_dict):
     total_pairs = 0
@@ -92,9 +103,16 @@ def compare_entry_exit_pairs(generated_dict, ground_truth_dict):
         'unmatched_pairs': unmatched_pairs
     }
 
-def pair_score_cal(ave_distance,pair_num):
+def pair_score_cal(ave_distance,pair_num,time_var):
+    if pair_num < 5:
+        pair_num = -100
+    elif pair_num < 10:
+        pair_num = -10
+
     pair_num = pair_num/100
-    score = -ave_distance*0.7 + pair_num*0.3
+    time_var = time_var/10000
+
+    score = -ave_distance*0.7 + pair_num*0.3 - time_var*0.1
 
     return score
 
@@ -123,21 +141,71 @@ def data_loading(data_path):
     # print(f'we have {len(exit_zone_data.keys())} exit zone in cam {data_path[-21:-17]}')
     return entry_zone_data,exit_zone_data    
 
-def zone_pair(entry_zone_data,exit_zone_data):
+def zone_pair(entry_zone_data,exit_zone_data, high_confidence = False):
 
     pair_res_temp = {}
+    time_pair ={}
+
     for entry_zone_id in entry_zone_data:
         for exit_zone_id in exit_zone_data:
+            
+            if high_confidence:
+                entry_zone_data[entry_zone_id] = high_conf_filter(entry_zone_data[entry_zone_id],conf_threshold =0.7)
+                exit_zone_data[exit_zone_id] = high_conf_filter(exit_zone_data[exit_zone_id],conf_threshold=0.7)
+
+            if entry_zone_data[entry_zone_id] == {} or exit_zone_data[exit_zone_id] =={}:
+                print('yes')
+                continue
+            # print('entry',entry_zone_data[entry_zone_id] )
+            # print('exit',exit_zone_data[exit_zone_id])
+
             cmz = CostMatrix_Zone(entry_zone_data[entry_zone_id],exit_zone_data[exit_zone_id])
             distmat, q_track_ids, q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, q_entry_zone,q_exit_zone,g_entry_zone,g_exit_zone = cmz.cost_matrix_zone('Cosine_Distance')
-            _, _,ave_distance, pair_num = original_calc_reid(distmat,q_track_ids,g_track_ids,q_cam_ids,g_cam_ids,dis_thre=0.5,dis_remove=0.6)
+            reid_dict, _,ave_distance, pair_num = original_calc_reid(distmat,q_track_ids,g_track_ids,q_cam_ids,g_cam_ids,dis_thre=0.5,dis_remove=0.6)
 
-            print('pair_num:',pair_num)
-            print('ave_distance:',ave_distance)
-            print(q_cam_ids[0],entry_zone_id,g_cam_ids[0],exit_zone_id)
             
+            cam_ids = list(reid_dict.keys())
+            for cam_id in cam_ids:
+                # the first one is the entry_zone
+                track_ids = list(reid_dict[cam_id].keys())
+                
+                for track_id in track_ids:
 
-            score = pair_score_cal(ave_distance,pair_num)
+                    idtext = f'{reid_dict[cam_id][track_id]["id"]}'
+                    if  idtext not in time_pair:
+                        time_pair[f'{reid_dict[cam_id][track_id]["id"]}'] = {'entry_start_time':None,'exit_end_time':None}
+
+
+                    if track_id in list(entry_zone_data[entry_zone_id].keys()):
+                        if time_pair[f'{reid_dict[cam_id][track_id]["id"]}']['entry_start_time'] is None:
+                            if entry_zone_data[entry_zone_id][track_id]['cam'] == f'c0{cam_id}': # 0 is the entry and 1 is the exit
+                                time_pair[f'{reid_dict[cam_id][track_id]["id"]}']['entry_start_time'] = entry_zone_data[entry_zone_id][track_id]['start_time']
+                        else:
+                            if track_id in list(exit_zone_data[exit_zone_id].keys()):
+                                if exit_zone_data[exit_zone_id][track_id]['cam'] == f'c0{cam_id}': 
+                                    time_pair[f'{reid_dict[cam_id][track_id]["id"]}']['exit_end_time'] = exit_zone_data[exit_zone_id][track_id]['end_time']                                
+           
+                    elif track_id in list(exit_zone_data[exit_zone_id].keys()):
+                        if exit_zone_data[exit_zone_id][track_id]['cam'] == f'c0{cam_id}': 
+                            time_pair[f'{reid_dict[cam_id][track_id]["id"]}']['exit_end_time'] = exit_zone_data[exit_zone_id][track_id]['end_time']
+                    else:
+                        print('NOTE:TRACK_ID NOT MATCHABLE')
+
+                    
+            # print(time_pair)
+            transition_time = []
+            for track_id in time_pair:
+                if (time_pair[track_id]['entry_start_time'] is not None) and (time_pair[track_id]['exit_end_time'] is not None):
+                    transition_time.append(time_pair[track_id]['entry_start_time'] - time_pair[track_id]['exit_end_time'])
+            
+            time_var = np.var(transition_time)
+            # print(entry_zone_id,exit_zone_id)
+            # print('time_var',time_var) 
+            # print('ave_distance',ave_distance)
+            # print('pair_num',pair_num)
+        
+            score = pair_score_cal(ave_distance,pair_num,time_var)
+            # print('score',score)
 
             if q_cam_ids[0] not in pair_res_temp:
                 pair_res_temp[q_cam_ids[0]] = {}
@@ -155,7 +223,6 @@ def zone_pair(entry_zone_data,exit_zone_data):
             elif score > current_second_top['score']:
                 # Update second top if new score is second highest
                 pair_res_temp[q_cam_ids[0]][g_cam_ids[0]]['second_top'] = {'score': score, 'pair': [entry_zone_id, exit_zone_id]}
-
     return pair_res_temp
 
 def main(seq1,seq2,pair_res):
@@ -164,7 +231,7 @@ def main(seq1,seq2,pair_res):
     cam2_path = os.path.join(abs_path,seq2,f'{seq2}_new_tracklet.pkl')
     cam1_entry_zone_data, cam1_exit_zone_data = data_loading(cam1_path)
     cam2_entry_zone_data, cam2_exit_zone_data = data_loading(cam2_path)
-    temp_res1 = zone_pair(cam1_entry_zone_data,cam2_exit_zone_data)
+    temp_res1 = zone_pair(cam1_entry_zone_data,cam2_exit_zone_data, high_confidence = True)
     for key,value in temp_res1.items():
         if key in pair_res:
             pair_res[key].update(value)  # Update existing nested dictionary
@@ -179,6 +246,8 @@ def main(seq1,seq2,pair_res):
         else:
             pair_res[key] = value  # Create new key-value pair
 
+    
+
     return pair_res
     
 
@@ -187,7 +256,7 @@ def main(seq1,seq2,pair_res):
 if __name__ == "__main__":
     pair_res = {}
     seqs = ['c041', 'c042', 'c043', 'c044', 'c045', 'c046']
-    #seqs = ['c042','c043'] 
+    #seqs = ['c043', 'c044']
 
     abs_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge'
     cam_pair_save_path = os.path.join(abs_path,'cam_pair.json')
