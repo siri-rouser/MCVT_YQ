@@ -18,6 +18,7 @@ python DeepsortTracking.py
 python Data_process.py 
 python auto_zone.py
 python camera_link.py
+python time_window.py
 
 cd ../matching
 python Trackletmatching.py

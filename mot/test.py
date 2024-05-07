@@ -11,7 +11,7 @@ with open(pair_path,'r') as f:
     cam_pair = json.load(f)
 
 
-data= np.array(cam_pair['42']['43']['time_pair']).reshape(-1, 1)
+data= np.array(cam_pair['45']['46']['time_pair']).reshape(-1, 1)
 
 kde = KernelDensity(kernel='gaussian', bandwidth=5.0)
 kde.fit(data)
@@ -21,7 +21,8 @@ x_d = np.linspace(min(data) - 20, max(data) + 20, 100).reshape(-1, 1)
 
 # Computing the log density model (logarithm of the density)
 log_density = kde.score_samples(x_d)
-
+print(np.exp(log_density))
+# print(np.exp(kde.score_samples(np.array(25).reshape(-1,1))))
 # Plotting the density estimation
 plt.figure(figsize=(8, 4))
 plt.fill_between(x_d.flatten(), np.exp(log_density), alpha=0.5)

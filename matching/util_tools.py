@@ -1,5 +1,6 @@
 import numpy as np
 import json
+from sklearn.neighbors import KernelDensity
 '''
 CAM_DIST = [[  0, 40, 55,100,120,145],
             [ 40,  0, 15, 60, 80,105],
@@ -28,13 +29,14 @@ ZONE_PAIR = [[[],[0,7],[],[],[],[]],
              [[],[],[],[],[2,8],[]]]
 '''
 
+'''
 SPEED_LIMIT = [[(0,0), (400,1300), (550,2000), (1000,2000), (1200, 2000), (1450, 2000)],
                [(400,1300), (0,0), (100,900), (600,2000), (800,2000), (1050,2000)],
                [(550,2000), (100,900), (0,0), (350,1050), (650,2000), (900, 2000)],
                [(1000,2000), (600,2000), (350,1050), (0,0), (150,500), (450, 2000)],
                [(1200, 2000), (800,2000), (650,2000), (150,500), (0,0), (250,900)],
                [(1450, 2000), (1050,2000), (900, 2000), (450, 2000), (250,900), (0,0)]]  
-
+'''
 
 def convert_keys_to_int(obj):
     if isinstance(obj, dict):
@@ -87,43 +89,6 @@ def speed_limit_remove_gen(q_cam_id,g_cam_ids,q_entry_temp,q_exit_temp,q_entry_z
     return speed_limit_remove, high_confidence_track
 
 
-def cam_remove_gen(q_cam_ids,g_cam_ids,q_entry_zone_id,q_entry_zone_cls,q_exit_zone_id,q_exit_zone_cls,g_entry_zones,g_exit_zones,order):
-    cam_remove = []
-    if type(ZONE_PAIR[q_cam_ids[0]-41][g_cam_ids[0]-41][0]) == int:
-        q_entry_temp = [ZONE_PAIR[q_cam_ids[0]-41][g_cam_ids[0]-41][0]]
-    else:
-        q_entry_temp = ZONE_PAIR[q_cam_ids[0]-41][g_cam_ids[0]-41][0]
-    
-    if type(ZONE_PAIR[g_cam_ids[0]-41][q_cam_ids[0]-41][1]) == int:
-        q_exit_temp = [ZONE_PAIR[g_cam_ids[0]-41][q_cam_ids[0]-41][1]]
-    else:
-        q_exit_temp = ZONE_PAIR[g_cam_ids[0]-41][q_cam_ids[0]-41][1]
-    if (q_entry_zone_id in q_entry_temp) or\
-            (q_exit_zone_id in q_exit_temp) or\
-                q_entry_zone_cls =='undefined_zone' or q_exit_zone_cls =='undefined_zone':
-        for ord in order:
-            
-            # For data_structure unify
-            if type(ZONE_PAIR[g_cam_ids[0]-41][q_cam_ids[0]-41][0]) == int:
-                g_entry_temp = [ZONE_PAIR[g_cam_ids[0]-41][q_cam_ids[0]-41][0]]
-            else:
-                g_entry_temp = ZONE_PAIR[g_cam_ids[0]-41][q_cam_ids[0]-41][0]
-            if type(ZONE_PAIR[q_cam_ids[0]-41][g_cam_ids[0]-41][1]) == int:
-                g_exit_temp = [ZONE_PAIR[q_cam_ids[0]-41][g_cam_ids[0]-41][1]]
-            else:
-                g_exit_temp = ZONE_PAIR[q_cam_ids[0]-41][g_cam_ids[0]-41][1]
-            # For data_structure unify
-            if (g_entry_zones[ord][1] in g_entry_temp) or\
-                    (g_exit_zones[ord][1] in g_exit_temp) or\
-                        (g_entry_zones[ord][0] == 'undefined_zone') or (g_exit_zones[ord][0] == 'undefined_zone'):
-                cam_remove.append(False)
-            else:
-                cam_remove.append(True)
-    else: 
-        cam_remove = [True] * len(g_cam_ids)
-    return cam_remove,q_entry_temp,q_exit_temp
-
-
 def cam_remove_gen1(q_cam_ids,g_cam_ids,q_entry_zone_id,q_entry_zone_cls,q_exit_zone_id,q_exit_zone_cls,g_entry_zones,g_exit_zones,order):
     cam_remove = []
     zone_pair_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/cam_pair.json'
@@ -154,8 +119,57 @@ def cam_remove_gen1(q_cam_ids,g_cam_ids,q_entry_zone_id,q_entry_zone_cls,q_exit_
     else: 
         cam_remove = [True] * len(g_cam_ids)
 
-    return cam_remove,q_entry_temp,q_exit_temp
+    return cam_remove
     
+
+def dis_time_filter(dismat,index,orders,q_entry_zone_id,q_exit_zone_id,q_time,g_times,q_cam_ids,g_cam_ids):
+    high_confidence_track = False
+    zone_pair_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/cam_pair.json'
+    with open(zone_pair_path) as f:
+        ZONE_PAIR = json.load(f)
+    ZONE_PAIR = convert_keys_to_int(ZONE_PAIR)
+
+    q_entry_temp = ZONE_PAIR[q_cam_ids[0]][g_cam_ids[0]]['entry_exit_pair'][0] # the entry_zone_id
+
+    q_exit_temp = ZONE_PAIR[g_cam_ids[0]][q_cam_ids[0]]['entry_exit_pair'][1] # the exit_zone_id
+
+    # Kernel Density Estimation
+    time_trans_data = np.array(ZONE_PAIR[q_cam_ids[0]][g_cam_ids[0]]['time_pair']).reshape(-1,1)
+    kde = KernelDensity(kernel='gaussian', bandwidth=5.0)
+    kde.fit(time_trans_data)
+
+    # If it is the entry_track
+    if q_entry_zone_id == q_entry_temp:
+        high_confidence_track = True
+        for order in orders:
+            trans_time = q_time[0] - g_times[order][1] # entry_time - exit_time
+            pdf = np.exp(kde.score_samples(np.array(trans_time).reshape(-1,1)))
+            if pdf < 1e-3:
+                dismat[index][order]= dismat[index][order] + 1 # If the distance > 1 it will be automatically filtered later then
+            else:
+                dismat[index][order] = dismat[index][order] + (-0.5) * pdf # decrease around 0.001 to 0.01 distance if it is matched...
+
+    elif q_exit_zone_id == q_exit_temp: # If it is exit track
+        high_confidence_track = True
+        for order in orders:
+            trans_time = g_times[order][0] - q_time[1] # exit_time - entry_time
+            pdf = np.exp(kde.score_samples(np.array(trans_time).reshape(-1,1)))
+            if pdf < 1e-3:
+                dismat[index][order]= dismat[index][order] + 1 # If the distance > 1 it will be automatically filtered later then
+            else:
+                dismat[index][order] = dismat[index][order] + (-0.5) * pdf # decrease around 0.001 to 0.01 distance if it is matched...
+    else:
+        for order in orders:
+            trans_time1 = g_times[order][0] - q_time[1]
+            trans_time2 = q_time[0] - g_times[order][1]
+            pdf = max(np.exp(kde.score_samples(np.array(trans_time1,trans_time2).reshape(-1,1))))
+            if pdf < 1e-3:
+                dismat[index][order]= dismat[index][order] + 1 # If the distance > 1 it will be automatically filtered later then
+            else:
+                dismat[index][order] = dismat[index][order] + (-0.5) * pdf # decrease around 0.001 to 0.01 distance if it is matched...
+
+    
+    return dismat, high_confidence_track
 
 
 def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, q_entry_zones, q_exit_zones, g_entry_zones, g_exit_zones, new_id, dis_thre=0.5,dis_remove=0.6):
@@ -188,22 +202,24 @@ def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_t
 
         order1=order.copy()
 
-        cam_remove,q_entry_temp,q_exit_temp = cam_remove_gen1(q_cam_ids,g_cam_ids,q_entry_zone_id,q_entry_zone_cls,q_exit_zone_id,q_exit_zone_cls,g_entry_zones,g_exit_zones,order1)
+        cam_remove= cam_remove_gen1(q_cam_ids,g_cam_ids,q_entry_zone_id,q_entry_zone_cls,q_exit_zone_id,q_exit_zone_cls,g_entry_zones,g_exit_zones,order1)
 
 
-        speed_limit_remove,high_conf_track = speed_limit_remove_gen(q_cam_id,g_cam_ids,q_entry_temp,q_exit_temp,q_entry_zone_id,q_exit_zone_id,q_time,g_times,order1)
+        # speed_limit_remove,high_conf_track = speed_limit_remove_gen(q_cam_id,g_cam_ids,q_entry_temp,q_exit_temp,q_entry_zone_id,q_exit_zone_id,q_time,g_times,order1)
+        # rememeber still keep the high_conf_track
+        dismat,high_conf_track = dis_time_filter(dismat,index,order1,q_entry_zone_id,q_exit_zone_id,q_time,g_times,q_cam_ids,g_cam_ids)
 
         if high_conf_track:
-            dis_thre=0.52
-            dis_remove=0.62
+            dis_thre=0.475
+            dis_remove=0.575
         else:
-            dis_thre=0.42
-            dis_remove=0.52
+            dis_thre=0.32
+            dis_remove=0.42
         
         remove = (g_track_ids[order] == q_track_id) | \
                 (g_cam_ids[order] == q_cam_id) | \
                 (dismat[index][order] > dis_thre) | \
-                (speed_limit_remove) | (cam_remove)
+                (cam_remove)
 
         # remove all track g_time < q_time + min_time and g_time > q_time + max_time
         keep = np.invert(remove)
