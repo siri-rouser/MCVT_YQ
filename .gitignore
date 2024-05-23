@@ -8,3 +8,4 @@ detector/yolov9e.pt
 # Ignoring datasets directory
 datasets/
 
+detector-MaskRCNN/mask_rcnn_coco.h5
