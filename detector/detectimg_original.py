@@ -16,7 +16,7 @@ seqs = ['c046']
  
 # model = YOLO('yolov9-e.yaml')
 # Load a model
-model = YOLO("/home/yuqiang/yl4300/project/MCVT_YQ/detector/yolov9e.pt")  # load an official model
+model = YOLO("/home/yuqiang/yl4300/project/MCVT_YQ/detector/yolov8x.pt")  # load an official model
  
 vehicles = [2, 3, 5, 7]
  
@@ -42,7 +42,7 @@ for seq in seqs:
    
     for path,img0,vid_cap,_ in dataset:
         img = np.array(img0[0], dtype=np.uint8)
-        result = model(img, conf=0.2, agnostic_nms=True, save_txt=True, imgsz=1280, classes=vehicles, iou=0.45)
+        result = model(img, conf=0.1, agnostic_nms=True, save_txt=True, imgsz=1280, classes=vehicles, iou=0.45)
  
         for i, result in enumerate(result):  # detections per image
             p, s, im0, frame = path, '', img0, getattr(dataset, 'frame', 0)

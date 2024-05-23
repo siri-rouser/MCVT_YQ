@@ -13,6 +13,7 @@ cam = f'c0{args.cam}'
 # Replace this with the path to your pickle file
 mot_feat_new = f'/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/{cam}/{cam}_mot_feat_new.pkl'
 new_tracklet = f'/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/{cam}/{cam}_new_tracklet.pkl'
+tracklet = f'/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/{cam}/{cam}_tracklet.pkl'
 dets_feat = f'/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_reid1/{cam}/{cam}_dets_feat.pkl'
 # Open the pickle file and load its contents
 
@@ -22,6 +23,8 @@ elif args.file == 'new_tracklet':
     path = new_tracklet
 elif args.file == 'dets_feat':
     path = dets_feat
+elif args.file == 'tracklet':
+    path = tracklet
 else:
     print('pls input the right file arguments!')
     sys.exit()

@@ -1,0 +1,12 @@
+/home/yuqiang/anaconda3/envs/AICvenv/lib/python3.8/site-packages/sklearn/utils/linear_assignment_.py:18: FutureWarning: The linear_assignment_ module is deprecated in 0.21 and will be removed from 0.23. Use scipy.optimize.linear_sum_assignment instead.
+  warnings.warn(
+/home/yuqiang/anaconda3/envs/AICvenv/lib/python3.8/site-packages/sklearn/utils/linear_assignment_.py:124: FutureWarning: The linear_assignment function is deprecated in 0.21 and will be removed from 0.23. Use scipy.optimize.linear_sum_assignment instead.
+  warnings.warn(
+
+real	28m52.423s
+user	186m7.130s
+sys	485m27.345s
+
+real	0m1.906s
+user	0m7.632s
+sys	0m17.370s

@@ -1,0 +1,28 @@
+YOLOv5 🚀 7c43d07 torch 2.1.2+cu121 CUDA:0 (NVIDIA GeForce RTX 4070 Ti, 11980MiB)
+
+Fusing layers... 
+Model Summary: 574 layers, 140730220 parameters, 0 gradients, 209.6 GFLOPs
+YOLOv5 🚀 7c43d07 torch 2.1.2+cu121 CUDA:0 (NVIDIA GeForce RTX 4070 Ti, 11980MiB)
+
+Fusing layers... 
+Model Summary: 574 layers, 140730220 parameters, 0 gradients, 209.6 GFLOPs
+YOLOv5 🚀 7c43d07 torch 2.1.2+cu121 CUDA:0 (NVIDIA GeForce RTX 4070 Ti, 11980MiB)
+
+Fusing layers... 
+Model Summary: 574 layers, 140730220 parameters, 0 gradients, 209.6 GFLOPs
+YOLOv5 🚀 7c43d07 torch 2.1.2+cu121 CUDA:0 (NVIDIA GeForce RTX 4070 Ti, 11980MiB)
+
+Fusing layers... 
+Model Summary: 574 layers, 140730220 parameters, 0 gradients, 209.6 GFLOPs
+YOLOv5 🚀 7c43d07 torch 2.1.2+cu121 CUDA:0 (NVIDIA GeForce RTX 4070 Ti, 11980MiB)
+
+Fusing layers... 
+Model Summary: 574 layers, 140730220 parameters, 0 gradients, 209.6 GFLOPs
+YOLOv5 🚀 7c43d07 torch 2.1.2+cu121 CUDA:0 (NVIDIA GeForce RTX 4070 Ti, 11980MiB)
+
+Fusing layers... 
+Model Summary: 574 layers, 140730220 parameters, 0 gradients, 209.6 GFLOPs
+
+real	8m51.729s
+user	8m41.705s
+sys	0m15.119s

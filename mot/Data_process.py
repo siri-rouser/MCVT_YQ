@@ -83,6 +83,9 @@ def post_process(seq):
         track_conf_avg[track_id] = np.average(confs)
     # print(track_bbox_xy[2])
 
+
+    
+
     new_data = {}
     zone_data = {}
     flag = 0
@@ -128,7 +131,7 @@ def post_process(seq):
 
 if __name__ == "__main__":
     seqs = ['c041','c042','c043','c044','c045','c046']
-    # seqs = ['c041']
+    seqs = ['c041']
     for seq in seqs:
         print(f'start processing {seq} ---')
         post_process(seq)

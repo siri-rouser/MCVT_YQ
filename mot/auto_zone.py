@@ -38,6 +38,7 @@ def main(seq):
     img_save_path1 = os.path.join(abs_path, seq, 'auto_zone_draw.jpg')
     exit_zone_img_path = os.path.join(abs_path, seq, 'exit_zone_draw.jpg')
     entry_zone_img_path = os.path.join(abs_path, seq, 'entry_zone_draw.jpg')
+    entry_exit_zone_img_path = os.path.join(abs_path, seq, 'entry_exit_zone_draw.jpg')
     img_path = os.path.join(abs_img_path, seq, 'img1/img000000.jpg')
     background_img = cv2.imread(img_path)
 
@@ -94,6 +95,7 @@ def main(seq):
     areadraw_img = background_img.copy()
     entry_zone_img = background_img.copy()
     exit_zone_img = background_img.copy()
+    entry_exit_zone_img = background_img.copy()
     
     for cluster_id, result in bbox_results.items():
         # it returns the result for certain vector cluster
@@ -155,6 +157,7 @@ def main(seq):
                     areadraw_img = Zone[assign].area_drawing(areadraw_img)
                     entry_zone_img = Zone[assign].required_area_drawing(entry_zone_img,'entry_zone')
                     exit_zone_img = Zone[assign].required_area_drawing(exit_zone_img,'exit_zone')
+                    entry_exit_zone_img = Zone[assign].required_area_drawing(entry_exit_zone_img,['entry_zone','exit_zone'])
 
                     # if Zone[assign].zone_cls == 'entry_zone':
                     #     areadraw_img = Zone[assign].area_drawing(areadraw_img)
@@ -197,6 +200,7 @@ def main(seq):
     cv2.imwrite(img_save_path1, areadraw_img)
     cv2.imwrite(entry_zone_img_path, entry_zone_img)
     cv2.imwrite(exit_zone_img_path, exit_zone_img)
+    cv2.imwrite(entry_exit_zone_img_path, entry_exit_zone_img)
     pickle.dump(track_data, open(new_track_path, 'wb'), pickle.HIGHEST_PROTOCOL)
 
 # -------------------------- END -------------------------------------

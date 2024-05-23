@@ -39,8 +39,9 @@ class CostMatrix:
                 track_ids.append(track_id)
                 cam_ids.append(int(value['cam'][-3:]))
                 times.append([value['start_time'],value['end_time']])
-                entry_zones.append([value['entry_zone_cls'], value['entry_zone_id']])
-                exit_zones.append([value['exit_zone_cls'], value['exit_zone_id']])
+                if 'entry_zone_cls' in list(value.keys()):
+                    entry_zones.append([value['entry_zone_cls'], value['entry_zone_id']])
+                    exit_zones.append([value['exit_zone_cls'], value['exit_zone_id']])
 
             feats = torch.cat(feats,0)
             track_ids = np.asarray(track_ids)

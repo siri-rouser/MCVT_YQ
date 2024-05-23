@@ -7,10 +7,10 @@ from config import cfg
 
 
 def post_process(seq):
-    cfg.merge_from_file(f'../config/{sys.argv[1]}')
-    cfg.freeze()
-    abs_path = cfg.DATA_DIR
-    # abs_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge'
+    # cfg.merge_from_file(f'../config/{sys.argv[1]}')
+    # cfg.freeze()
+    # abs_path = cfg.DATA_DIR
+    abs_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge'
     track_path = os.path.join(abs_path,seq,f'{seq}_mot.txt')
     combined_track_path = os.path.join(abs_path,'tracklets.txt')
     feat_path = os.path.join(abs_path,seq,f'{seq}_mot_feat_new.pkl')
@@ -21,7 +21,7 @@ def post_process(seq):
     track_feature = {}
     frame_nums = {}
     # Make sure the result is updated
-    if seq == 'c001':
+    if seq == 'c041':
         mot_result =  open(combined_track_path,'w')
     else:
         mot_result =  open(combined_track_path,'a')
@@ -67,20 +67,19 @@ def post_process(seq):
 
         track_time = end_time - start_time
 
-        # if travel_distance > 80 and track_time > 0.8:
-        new_data[track_id] = {'cam': seq, 'track_id':track_id, 'start_time':start_time, 'end_time':end_time,'feat':feat}
-        for i,frame_num in enumerate(frame_nums[track_id]):
-            bbox_str = " ".join(map(str, map(int, track_bbox[track_id][i])))
-            output_line = f'{str(seq)[2:]} {track_id} {frame_num} {bbox_str}\n'
-            mot_result.write(output_line)
+        if travel_distance > 100 and track_time > 1:
+            new_data[track_id] = {'cam': seq, 'track_id':track_id, 'start_time':start_time, 'end_time':end_time,'feat':feat}
+            for i,frame_num in enumerate(frame_nums[track_id]):
+                bbox_str = " ".join(map(str, map(int, track_bbox[track_id][i])))
+                output_line = f'{str(seq)[2:]} {track_id} {frame_num} {bbox_str}\n'
+                mot_result.write(output_line)
 
 
     pickle.dump(new_data, open(tracklet_pkl_file, 'wb'), pickle.HIGHEST_PROTOCOL)
     mot_result.close()
 
 if __name__ == "__main__":
-    seqs = ['c001','c002','c003','c004','c005']
-    # seqs = ['c041']
+    seqs = ['c041','c042','c043','c044','c045','c046']
     for seq in seqs:
         print(f'start processing {seq} ---')
         post_process(seq)

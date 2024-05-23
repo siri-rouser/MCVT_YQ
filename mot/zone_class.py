@@ -95,7 +95,9 @@ class ZONE():
         return background_img
     
     def required_area_drawing(self, background_img, requirement):
-        if self.zone_cls == requirement:
+        if type(requirement) == str:
+            requirement = [requirement]
+        if self.zone_cls in requirement:
             rd_color = list(np.random.random(size=3) * 256)
             text = f'Zone_id{self.zone_id} {self.zone_cls}'
             cv2.rectangle(background_img,(int(self.rect_area[0]),int(self.rect_area[1])),(int(self.rect_area[2]),int(self.rect_area[3])),rd_color,8)
