@@ -1,6 +1,7 @@
 import os 
+import numpy as np
 import json
-import Modified_QuickTrack
+import Modified_Deepocsort 
 import random
 import cv2
 import pickle
@@ -12,6 +13,9 @@ from config import cfg
 
 
 def main(seq):
+
+    np.set_printoptions(suppress=True, precision=5)
+    # Set dataset and detector
     # cfg.merge_from_file(f'../config/{sys.argv[1]}')
     # cfg.freeze()
     # abs_path = cfg.DATA_DIR
@@ -29,7 +33,10 @@ def main(seq):
     source_files = os.listdir(path_source)
     sorted_source_files = sorted(source_files)
     save_path = os.path.join(abs_path, seq, f'{seq}_mot.txt')
-    tracker = Modified_QuickTrack.Modified_QT()
+
+
+
+    tracker = Modified_Deepocsort.Modified_Tracker()
 
     colors = [(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)) for j in range(20)]
 
@@ -49,8 +56,16 @@ def main(seq):
             frame_img_path = os.path.join(path_source,frame_img)
             det_file_path = os.path.join(path_det, frame_img.replace('.jpg','.txt')) # get the imgxxxxxx.txt file path here
             feat_file_path = os.path.join(path_feat,frame_img.replace('.jpg', '.json')) # get the imgxxxxxx.json file path here
+            tag = f"{seq}:{frame_number}"
+
+            if frame_number == 1:
+                print(f"Initializing tracker")
+
+                # tracker.tracker.dump_cache()  # just initalize .pkl file
+                # tracker = tracker_module.ocsort.OCSort(**oc_sort_args)
             
             frame_img = cv2.imread(frame_img_path)
+            img = frame_img.cuda()
 
             feats = []
             feat = []
@@ -83,7 +98,7 @@ def main(seq):
             # print(f'confidence score length:{len(confidence)}')
             # print(f'feats length:{len(feats)}')
             # Data use for deepsort tracker
-            tracker.update(bbox,confidence,feats,frame_img)
+            tracker.update(bbox,confidence,feats,img)
             for index, track in enumerate(tracker.tracks):
                 image_name = f'img_{frame_number}_{index}'
                 bbox = track.bbox
@@ -106,7 +121,7 @@ def main(seq):
             cap_out.write(frame_img)
             
         pickle.dump(mot_feat_data, open(feat_pkl_file, 'wb'), pickle.HIGHEST_PROTOCOL)
-
+        tracker.clear()
     cap_out.release()
     end_time = time.time()
     t = end_time - start_time
@@ -120,7 +135,7 @@ def main(seq):
 if __name__ == "__main__":
     seqs = ['c041','c042','c043','c044','c045','c046']
     # seqs = ['c041']
-    # num_process = 6
+    num_process = 6
     t_total = 0
 
     # seqs = ['c041']

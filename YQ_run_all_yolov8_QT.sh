@@ -24,19 +24,20 @@ start_time=$(date +%s) # Save the start time
 
 # # Moving to the reid directory for feature extraction
 cd reid
-# { time python extract_image_feat.py "aic_reid1.yml"; } 2>> $output_file
-# { time python extract_image_feat.py "aic_reid2.yml"; } 2>> $output_file
-# { time python extract_image_feat.py "aic_reid3.yml"; } 2>> $output_file
+{ time python extract_image_feat.py "aic_reid1.yml"; } 2>> $output_file
+{ time python extract_image_feat.py "aic_reid2.yml"; } 2>> $output_file
+{ time python extract_image_feat.py "aic_reid3.yml"; } 2>> $output_file
 { time python merge_reid_feat.py ${MCMT_CONFIG_FILE}; } 2>> $output_file
 
 echo "--------------------SCT--------------------" >> $output_file
+echo "QT TEST" >> $output_file
 # Processing motion tracking
 cd ../mot
 cd tool
 { time python pre_process.py; } 2>> $output_file
 
 cd ..
-{ time python DeepsortTracking.py; } 2>> $output_file
+{ time python QuickTracking.py; } 2>> $output_file
 { time python Data_process_train.py; } 2>> $output_file
 # Optional or commented out scripts
 # { time python auto_zone.py; } 2>> $output_file

@@ -14,7 +14,7 @@ class Modified_QT:
         maxShapeDif: float = 0.5
         weights: List[int] = [0.4, 0.6]
         # print(weights)
-        maxAge: int = 20
+        maxAge: int = 5
         colour: str = 'no' # you may need to change that if you want to have more colour
         vitalScale: float = 0.7
         assign: str = 'LinAssign'

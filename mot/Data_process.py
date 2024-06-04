@@ -82,8 +82,6 @@ def post_process(seq):
         track_feature_avg[track_id] = weighted_avg_feat
         track_conf_avg[track_id] = np.average(confs)
     # print(track_bbox_xy[2])
-
-
     
 
     new_data = {}
