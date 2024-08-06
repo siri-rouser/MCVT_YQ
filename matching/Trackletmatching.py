@@ -62,7 +62,7 @@ def main(previous_reid_dict,previous_rm_dict,query_cam,gallery_cam):
     else:
         new_rm_dict = rm_dict
 
-    print(reid_dict)
+  #  print(reid_dict)
 
     return reid_dict, new_rm_dict
 

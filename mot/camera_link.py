@@ -6,14 +6,29 @@ import sys
 sys.path.append('../matching/')
 from CostMatrix import CostMatrix_Zone
 from util_tools import original_calc_reid
+import random
 
-GroundTurth_pair = {41:{42:{'entry_exit_pair':[0,7]}},
-                    42:{41:{'entry_exit_pair':[2,14]},43:{'entry_exit_pair':[8,12]}},
-                    43:{42:{'entry_exit_pair':[6,3]},44:{'entry_exit_pair':[13,1]}},
-                    44:{43:{'entry_exit_pair':[6,5]},45:{'entry_exit_pair':[2,3]}},
-                    45:{44:{'entry_exit_pair':[[7,9],[7,10]]},46:{'entry_exit_pair':[4,8]}},
-                    46:{45:{'entry_exit_pair':[[2,8],[2,12]]}}}
+# GroundTurth_pair = {41:{42:{'entry_exit_pair':[0,7]}},
+#                     42:{41:{'entry_exit_pair':[2,14]},43:{'entry_exit_pair':[8,12]}},
+#                     43:{42:{'entry_exit_pair':[6,3]},44:{'entry_exit_pair':[13,1]}},
+#                     44:{43:{'entry_exit_pair':[6,5]},45:{'entry_exit_pair':[2,3]}},
+#                     45:{44:{'entry_exit_pair':[[7,9],[7,10]]},46:{'entry_exit_pair':[4,8]}},
+#                     46:{45:{'entry_exit_pair':[[2,8],[2,12]]}}}
 
+# GroundTurth_pair = {41:{42:{'entry_exit_pair':[0,6]}},
+#                     42:{41:{'entry_exit_pair':[2,11]},43:{'entry_exit_pair':[7,3]}},
+#                     43:{42:{'entry_exit_pair':[[11,3],[14,3]]},44:{'entry_exit_pair':[0,13]}},
+#                     44:{43:{'entry_exit_pair':[2,12]},45:{'entry_exit_pair':[[5,9],[5,13]]}},
+#                     45:{44:{'entry_exit_pair':[4,1]},46:{'entry_exit_pair':[15,8]}},
+#                     46:{45:{'entry_exit_pair':[[0,3],[4,3]]}}}
+
+
+GroundTurth_pair = {41:{42:{'entry_exit_pair':[0,6]}},
+                    42:{41:{'entry_exit_pair':[2,11]},43:{'entry_exit_pair':[7,1]}},
+                    43:{42:{'entry_exit_pair':[9,3]},44:{'entry_exit_pair':[0,1]}},
+                    44:{43:{'entry_exit_pair':[5,10]},45:{'entry_exit_pair':[2,3]}},
+                    45:{44:{'entry_exit_pair':[14,13]},46:{'entry_exit_pair':[4,8]}},
+                    46:{45:{'entry_exit_pair':[0,15]}}}
 
 def convert_numpy(obj):
     if isinstance(obj, np.integer):
@@ -124,20 +139,28 @@ def data_loading(data_path):
         cam_data = pickle.load(data)
     
     for key,value in cam_data.items():
+        # NOTE: A small modification on 29/07, in the case we need to process some of the undefined zone, i just commented the if statement to involve the undefined zone into our account.
         # NOTE: those two might contains same track!
-        if value['entry_zone_cls'] == 'entry_zone':
-            entry_zone_id = value['entry_zone_id']
+        # if value['entry_zone_cls'] == 'entry_zone':
+        entry_zone_id = value['entry_zone_id']
+        # print(entry_zone_id)
+
+        if entry_zone_id or entry_zone_id == 0: # check if it is empty list
             if entry_zone_id not in entry_zone_data:
+                
                 entry_zone_data[entry_zone_id] = {}
             entry_zone_data[entry_zone_id][value['track_id']] = {'cam':value['cam'],'track_id':value['track_id'],'start_time':value['start_time'],'end_time':value['end_time'],'conf':value['conf'],'entry_zone_id':value['entry_zone_id'],'exit_zone_id':value['exit_zone_id'],'feat':value['feat']}
 
-        if value['exit_zone_cls'] == 'exit_zone':
-            exit_zone_id = value['exit_zone_id']
+        # if value['exit_zone_cls'] == 'exit_zone':
+        exit_zone_id = value['exit_zone_id']
+        
+        if exit_zone_id or exit_zone_id == 0: # check if it is empty list
+       
             if exit_zone_id not in exit_zone_data:
                 exit_zone_data[exit_zone_id] = {}
             exit_zone_data[exit_zone_id][value['track_id']] = {'cam':value['cam'],'track_id':value['track_id'],'start_time':value['start_time'],'end_time':value['end_time'],'conf':value['conf'],'entry_zone_id':value['entry_zone_id'],'exit_zone_id':value['exit_zone_id'],'feat':value['feat']}
 
-    # print(f'we have {len(entry_zone_data.keys())} entry zone in cam {data_path[-21:-17]}')
+        # print(f'we have {len(entry_zone_data.keys())} entry zone in cam {data_path[-21:-17]}')
     # print(f'we have {len(exit_zone_data.keys())} exit zone in cam {data_path[-21:-17]}')
     return entry_zone_data,exit_zone_data    
 
@@ -225,6 +248,32 @@ def zone_pair(entry_zone_data,exit_zone_data, high_confidence = False):
                 pair_res_temp[q_cam_ids[0]][g_cam_ids[0]]['second_top'] = {'score': score, 'pair': [entry_zone_id, exit_zone_id]}
     return pair_res_temp
 
+
+############################################### TEMPROAL CHANGE #####################################
+def generate_random_score():
+    return random.uniform(0, 1)
+
+def populate_pair_res_with_groundtruth(ground_truth_dict):
+    pair_res = {}
+    for key, nested_dict in ground_truth_dict.items():
+        if key not in pair_res:
+            pair_res[key] = {}
+        for nested_key, details in nested_dict.items():
+            pair_res[key][nested_key] = {
+                'top': {
+                    'score': generate_random_score(),
+                    'pair': details['entry_exit_pair']
+                },
+                'second_top': {
+                    'score': generate_random_score(),
+                    'pair': None
+                }
+            }
+    return pair_res
+############################################### TEMPROAL CHANGE #####################################
+
+
+
 def main(seq1,seq2,pair_res):
     abs_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge'
     cam1_path = os.path.join(abs_path,seq1,f'{seq1}_new_tracklet.pkl')
@@ -246,36 +295,51 @@ def main(seq1,seq2,pair_res):
         else:
             pair_res[key] = value  # Create new key-value pair
 
-    
 
     return pair_res
-    
 
 
 
+
+# if __name__ == "__main__":
+#     pair_res = {}
+#     seqs = ['c041', 'c042', 'c043', 'c044', 'c045', 'c046']
+
+#     abs_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge'
+#     cam_pair_save_path = os.path.join(abs_path,'cam_pair.json')
+#     # for seq in seqs:
+#     #     cam_path = os.path.join(abs_path,seq,f'{seq}_new_tracklet.pkl')
+#     #     data_loading(cam_path)
+
+#     for i in range(len(seqs)-1):
+#         pair = f'{seqs[i]}&{seqs[i+1]}'
+#         print(f'start processing {seqs[i]} and {seqs[i+1]} pair ---')
+#         pair_res = main(seqs[i],seqs[i+1],pair_res)
+#         print(f'{seqs[i]} and {seqs[i+1]} pair finished -----')
+
+#     print(pair_res)
+#     pair_res = pair_res_filter(pair_res)
+#     print(pair_res)
+#     pair_res_converted = convert_numpy(pair_res)
+#     with open(cam_pair_save_path,'w') as f:
+#         json.dump(pair_res_converted,f)
+#     res = compare_entry_exit_pairs(pair_res, GroundTurth_pair)
+#     print(res)
+
+
+
+
+# ############################################### TEMPROAL CHANGE #####################################
 if __name__ == "__main__":
-    pair_res = {}
-    seqs = ['c041', 'c042', 'c043', 'c044', 'c045', 'c046']
-    #seqs = ['c043', 'c044']
-
-    abs_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge'
-    cam_pair_save_path = os.path.join(abs_path,'cam_pair.json')
-    # for seq in seqs:
-    #     cam_path = os.path.join(abs_path,seq,f'{seq}_new_tracklet.pkl')
-    #     data_loading(cam_path)
-
-    for i in range(len(seqs)-1):
-        pair = f'{seqs[i]}&{seqs[i+1]}'
-        print(f'start processing {seqs[i]} and {seqs[i+1]} pair ---')
-        pair_res = main(seqs[i],seqs[i+1],pair_res)
-        print(f'{seqs[i]} and {seqs[i+1]} pair finished -----')
-
-    print(pair_res)
+    pair_res = populate_pair_res_with_groundtruth(GroundTurth_pair)
     pair_res = pair_res_filter(pair_res)
-    print(pair_res)
     pair_res_converted = convert_numpy(pair_res)
-    with open(cam_pair_save_path,'w') as f:
-        json.dump(pair_res_converted,f)
+    
+    abs_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge'
+    cam_pair_save_path = os.path.join(abs_path, 'cam_pair.json')
+    
+    with open(cam_pair_save_path, 'w') as f:
+        json.dump(pair_res_converted, f)
+    
     res = compare_entry_exit_pairs(pair_res, GroundTurth_pair)
     print(res)
-

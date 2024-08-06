@@ -41,7 +41,7 @@ for seq in seqs:
     
     for path,img0,vid_cap,_ in dataset:
         img = np.array(img0[0], dtype=np.uint8) 
-        result = model(img, conf=0.1, agnostic_nms=True, save_txt=True, imgsz=1280, classes=vehicles, iou=0.45)
+        result = model(img, conf=0.2, agnostic_nms=True, save_txt=True, imgsz=1280, classes=vehicles, iou=0.45)
         p = Path(path[0])  # to Path
         save_path = str(save_dir / 'dets_debug' / p.name)  # img.jpg
         txt_path = str(save_dir / 'labels' / p.stem) + ('' if dataset.mode == 'image' else f'_{frame}')  # img.txt
@@ -122,7 +122,7 @@ for seq in seqs:
                     }
 
                     det_num+=1
-                    cv2.rectangle(img,(x1,y1),(x2,y2),(255,0,0),2)
+                    # cv2.rectangle(img,(x1,y1),(x2,y2),(255,0,0),2)
                 print('det_num:')
                 print(det_num)
 

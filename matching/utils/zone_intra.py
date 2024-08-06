@@ -25,8 +25,8 @@ class zone():
         self.current_cam = cam
 
     def get_zone(self,bbox):
-        cx = int((bbox[0] + bbox[2]) / 2)
-        cy = int((bbox[1] + bbox[3]) / 2)
+        cx = int((bbox[0] + bbox[2]) / 2) # x1+x2/2
+        cy = int((bbox[1] + bbox[3]) / 2) # y1+y2/2
         pix = self.zones[self.current_cam][cy, cx, :]
         zone_num = 0
         if pix[0] > 50 and pix[1] > 50 and pix[2] > 50:  # w

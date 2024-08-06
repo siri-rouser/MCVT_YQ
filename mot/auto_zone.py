@@ -61,7 +61,7 @@ def main(seq):
 
 #------------For Vector Clustering---------------------------
     mean_shifter = ms.MeanShift()
-    mean_shift_result = mean_shifter.cluster(vector_data, kernel_bandwidth=25)
+    mean_shift_result = mean_shifter.cluster(vector_data, kernel_bandwidth=20)
     cluster_assignments = mean_shift_result.cluster_ids
 
     for track_id, value in zone_data.items():

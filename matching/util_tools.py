@@ -29,14 +29,14 @@ ZONE_PAIR = [[[],[0,7],[],[],[],[]],
              [[],[],[],[],[2,8],[]]]
 '''
 
-'''
+
 SPEED_LIMIT = [[(0,0), (400,1300), (550,2000), (1000,2000), (1200, 2000), (1450, 2000)],
                [(400,1300), (0,0), (100,900), (600,2000), (800,2000), (1050,2000)],
                [(550,2000), (100,900), (0,0), (350,1050), (650,2000), (900, 2000)],
                [(1000,2000), (600,2000), (350,1050), (0,0), (150,500), (450, 2000)],
                [(1200, 2000), (800,2000), (650,2000), (150,500), (0,0), (250,900)],
                [(1450, 2000), (1050,2000), (900, 2000), (450, 2000), (250,900), (0,0)]]  
-'''
+
 
 def convert_keys_to_int(obj):
     if isinstance(obj, dict):
@@ -135,6 +135,18 @@ def dis_time_filter(dismat,index,orders,q_entry_zone_id,q_exit_zone_id,q_time,g_
 
     # Kernel Density Estimation
     time_trans_data = np.array(ZONE_PAIR[q_cam_ids[0]][g_cam_ids[0]]['time_pair']).reshape(-1,1)
+
+    
+    # if len(time_trans_data) == 0:
+    #     print('OH NO!!!!!!!!!!!!!!!!!!!!')
+    #     time_trans = SPEED_LIMIT[q_cam_ids[0]-41][g_cam_ids[0]-41]
+
+        
+    #     start_time,end_time = time_trans[0]/10, time_trans[1]/10
+    #     time_trans_data = np.random.uniform(start_time,end_time,size=20).reshape(-1,1)
+
+
+
     kde = KernelDensity(kernel='gaussian', bandwidth=5.0)
     kde.fit(time_trans_data)
 
@@ -144,7 +156,7 @@ def dis_time_filter(dismat,index,orders,q_entry_zone_id,q_exit_zone_id,q_time,g_
         for order in orders:
             trans_time = q_time[0] - g_times[order][1] # entry_time - exit_time
             pdf = np.exp(kde.score_samples(np.array(trans_time).reshape(-1,1)))
-            if pdf < 1e-3:
+            if pdf < 2*1e-4:
                 dismat[index][order]= dismat[index][order] + 1 # If the distance > 1 it will be automatically filtered later then
             else:
                 dismat[index][order] = dismat[index][order] + (-0.5) * pdf # decrease around 0.001 to 0.01 distance if it is matched...
@@ -154,7 +166,7 @@ def dis_time_filter(dismat,index,orders,q_entry_zone_id,q_exit_zone_id,q_time,g_
         for order in orders:
             trans_time = g_times[order][0] - q_time[1] # exit_time - entry_time
             pdf = np.exp(kde.score_samples(np.array(trans_time).reshape(-1,1)))
-            if pdf < 1e-3:
+            if pdf < 2*1e-4:
                 dismat[index][order]= dismat[index][order] + 1 # If the distance > 1 it will be automatically filtered later then
             else:
                 dismat[index][order] = dismat[index][order] + (-0.5) * pdf # decrease around 0.001 to 0.01 distance if it is matched...
@@ -172,7 +184,7 @@ def dis_time_filter(dismat,index,orders,q_entry_zone_id,q_exit_zone_id,q_time,g_
     return dismat, high_confidence_track
 
 
-def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, q_entry_zones, q_exit_zones, g_entry_zones, g_exit_zones, new_id, dis_thre=0.5,dis_remove=0.6):
+def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, q_entry_zones, q_exit_zones, g_entry_zones, g_exit_zones, new_id, dis_thre=0.62,dis_remove=0.72):
     # dis_thre=0.47,dis_remove=0.57
     # For Euclidean Distance (0.29,0.34)
     # new_id = np.max(g_track_ids)
@@ -208,13 +220,15 @@ def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_t
         # speed_limit_remove,high_conf_track = speed_limit_remove_gen(q_cam_id,g_cam_ids,q_entry_temp,q_exit_temp,q_entry_zone_id,q_exit_zone_id,q_time,g_times,order1)
         # rememeber still keep the high_conf_track
         dismat,high_conf_track = dis_time_filter(dismat,index,order1,q_entry_zone_id,q_exit_zone_id,q_time,g_times,q_cam_ids,g_cam_ids)
+        # dismat,high_conf_track = speed_limit_remove_gen(q_cam_id,g_cam_ids,q_entry_temp,q_exit_temp,q_entry_zone_id,q_exit_zone_id,q_time,g_times,order1)
+
 
         if high_conf_track:
-            dis_thre=0.475
-            dis_remove=0.575
+            dis_thre=0.5 #0.475
+            dis_remove=0.6 #0.575
         else:
-            dis_thre=0.32
-            dis_remove=0.42
+            dis_thre=0.45 # 0.42
+            dis_remove=0.35 # 0.32
         
         remove = (g_track_ids[order] == q_track_id) | \
                 (g_cam_ids[order] == q_cam_id) | \
@@ -231,7 +245,7 @@ def calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_t
         # print(remove_hard)
         keep_hard = np.invert(remove_hard)
         if True not in keep_hard: # nothing is been kept,所有的track都匹配不上
-            print('detected!!!!!')
+           # print('detected!!!!!')
             if q_cam_id not in list(rm_dict.keys()):
                 rm_dict[q_cam_id] = {}
             rm_dict[q_cam_id][q_track_id] = True       

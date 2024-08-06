@@ -6,6 +6,10 @@ import time
 parser = argparse.ArgumentParser()
 parser.add_argument("-c", "--cam", type=int)
 parser.add_argument("-f", "--file", type=str)
+# parser.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS,
+#                     help='example to call this script: python pklfileview.py -c 41 -fmot_feat_new')
+
+
 args = parser.parse_args()
 
 cam = f'c0{args.cam}'

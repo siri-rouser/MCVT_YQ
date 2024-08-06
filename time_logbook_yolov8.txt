@@ -9080,3 +9080,72 @@ Traceback (most recent call last):
   File "/home/yuqiang/anaconda3/envs/AICvenv/lib/python3.8/warnings.py", line 481, in __exit__
     self._module._filters_mutated()
 KeyboardInterrupt
+The YOLOv8 test!!
+Start time: Fri 12 Jul 16:43:33 BST 2024
+--------------------SCT--------------------
+SMILEtracl TEST
+python: can't open file 'pre_process.py': [Errno 2] No such file or directory
+
+real	0m0.010s
+user	0m0.005s
+sys	0m0.005s
+python: can't open file 'SMILEtracking.py': [Errno 2] No such file or directory
+
+real	0m0.010s
+user	0m0.005s
+sys	0m0.005s
+python: can't open file 'Data_process_train.py': [Errno 2] No such file or directory
+
+real	0m0.010s
+user	0m0.004s
+sys	0m0.007s
+--------------------MCT--------------------
+python: can't open file 'Trackletmatching_benchmark.py': [Errno 2] No such file or directory
+
+real	0m0.009s
+user	0m0.009s
+sys	0m0.000s
+Total execution time: 0 seconds
+----------------------------------------
+The YOLOv8 test!!
+Start time: Fri 12 Jul 16:44:01 BST 2024
+--------------------SCT--------------------
+SMILEtracl TEST
+
+real	3m39.510s
+user	3m35.102s
+sys	0m4.787s
+Traceback (most recent call last):
+  File "SMILEtracking.py", line 153, in <module>
+    t = main(seq)
+  File "SMILEtracking.py", line 102, in main
+    tracker.update(bbox,confidence,feats,class_id,frame_img)
+  File "/home/yuqiang/yl4300/project/MCVT_YQ/mot/Modified_SMILEtrack.py", line 81, in update
+    self.update_tracks()
+TypeError: update_tracks() missing 1 required positional argument: 'temp_results'
+
+real	10m33.609s
+user	3m41.816s
+sys	6m54.001s
+Traceback (most recent call last):
+  File "Data_process_train.py", line 85, in <module>
+    post_process(seq)
+  File "Data_process_train.py", line 57, in post_process
+    track_feature_avg= {track_id:np.mean(np.stack(features, axis=0), axis=0) for track_id, features in track_feature.items()}
+  File "Data_process_train.py", line 57, in <dictcomp>
+    track_feature_avg= {track_id:np.mean(np.stack(features, axis=0), axis=0) for track_id, features in track_feature.items()}
+  File "<__array_function__ internals>", line 180, in stack
+  File "/home/yuqiang/anaconda3/envs/AICvenv/lib/python3.8/site-packages/numpy/core/shape_base.py", line 426, in stack
+    raise ValueError('all input arrays must have the same shape')
+ValueError: all input arrays must have the same shape
+
+real	0m0.387s
+user	0m0.287s
+sys	0m0.511s
+--------------------MCT--------------------
+
+real	0m1.066s
+user	0m1.966s
+sys	0m1.755s
+Total execution time: 854 seconds
+----------------------------------------

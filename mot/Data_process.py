@@ -21,6 +21,7 @@ def post_process(seq):
     # cfg.freeze()
     # abs_path = cfg.DATA_DIR
     abs_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge'
+
     track_path = os.path.join(abs_path,seq,f'{seq}_mot.txt')
     combined_track_path = os.path.join(abs_path,'tracklets.txt')
     feat_path = os.path.join(abs_path,seq,f'{seq}_mot_feat_new.pkl')
@@ -77,7 +78,11 @@ def post_process(seq):
         feats = np.array(features['feat'])  
         confs = np.array(features['conf']) 
 
-        confs_normalized = confs / np.sum(confs)
+        if np.sum(confs) == 0:
+            confs_normalized = 1
+        else:
+            confs_normalized = confs / np.sum(confs)
+
         weighted_avg_feat = np.dot(confs_normalized, feats) / np.sum(confs_normalized)
         track_feature_avg[track_id] = weighted_avg_feat
         track_conf_avg[track_id] = np.average(confs)
@@ -129,7 +134,7 @@ def post_process(seq):
 
 if __name__ == "__main__":
     seqs = ['c041','c042','c043','c044','c045','c046']
-    seqs = ['c041']
+
     for seq in seqs:
         print(f'start processing {seq} ---')
         post_process(seq)

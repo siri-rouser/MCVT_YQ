@@ -11,6 +11,7 @@ def post_process(seq):
     # cfg.freeze()
     # abs_path = cfg.DATA_DIR
     abs_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge'
+    abs_path = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results_yolov8_smiletrack/detect_merge'
     track_path = os.path.join(abs_path,seq,f'{seq}_mot.txt')
     combined_track_path = os.path.join(abs_path,'tracklets.txt')
     feat_path = os.path.join(abs_path,seq,f'{seq}_mot_feat_new.pkl')
@@ -36,7 +37,9 @@ def post_process(seq):
         if track_id not in track_feature:
             track_feature[track_id] = []
             track_id_lib.append(track_id)
-        track_feature[track_id].append(value['feat'])
+        if value['feat'].shape != (0,):
+            track_feature[track_id].append(value['feat'])
+            # print(value['feat'].shape)
       
         if track_id not in track_bbox_xy:
             track_bbox_xy[track_id] = []
@@ -54,8 +57,14 @@ def post_process(seq):
       
         frame_nums[track_id].append(value['frame'])
   
-    track_feature_avg= {track_id:np.mean(np.stack(features, axis=0), axis=0) for track_id, features in track_feature.items()}
-    # print(track_bbox_xy[2])
+    track_feature_avg = {}
+    for track_id, features in track_feature.items():
+        non_empty_features = [feat for feat in features if feat.shape != (0,)]
+        if non_empty_features:
+            track_feature_avg[track_id] = np.mean(np.stack(non_empty_features, axis=0), axis=0)
+        else:
+            track_feature_avg[track_id] = np.zeros((2048,))  # Handle cases where all features are empty
+
 
     new_data = {}
     for track_id in track_id_lib: # get how many tracklet we got(total number of track_id)
