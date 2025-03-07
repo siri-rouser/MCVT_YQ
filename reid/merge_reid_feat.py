@@ -18,10 +18,11 @@ def merge_feat(_cfg):
     all_feat_dir = _cfg.DATA_DIR.split('detect')[0] # Returns the path before 'detect', for example, the DATA_DIR = '/mnt/LocalDisk1/Projects/AIC21-MTMC/datasets/algorithm_results/detect_reid1/', it will return '/mnt/LocalDisk1/Projects/AIC21-MTMC/datasets/algorithm_results/'
 
     for cam in ['c041', 'c042', 'c043', 'c044', 'c045', 'c046']:
+
         feat_dic_list = []
         for feat_mode in ensemble_list:
             feat_pkl_file = os.path.join(all_feat_dir, feat_mode, cam,
-                                         f'{cam}_dets_feat.pkl') # it returns e.g. /mnt/LocalDisk1/Projects/AIC21-MTMC/datasets/algorithm_results/detect_reid1/', it will return '/mnt/LocalDisk1/Projects/AIC21-MTMC/datasets/algorithm_results/detect_reid1/c041
+                                            f'{cam}_dets_feat.pkl') # it returns e.g. /mnt/LocalDisk1/Projects/AIC21-MTMC/datasets/algorithm_results/detect_reid1/', it will return '/mnt/LocalDisk1/Projects/AIC21-MTMC/datasets/algorithm_results/detect_reid1/c041
             feat_mode_dic = pickle.load(open(feat_pkl_file, 'rb'))
             feat_dic_list.append(feat_mode_dic)
         merged_dic = feat_dic_list[0].copy()
@@ -31,7 +32,7 @@ def merge_feat(_cfg):
                 patch_feature_list.append(feat_mode_dic[patch_name]['feat'])
             patch_feature_array = np.array(patch_feature_list)
             patch_feature_array = preprocessing.normalize(patch_feature_array,
-                                                          norm='l2', axis=1)
+                                                            norm='l2', axis=1)
             patch_feature_mean = np.mean(patch_feature_array, axis=0)
             merged_dic[patch_name]['feat'] = patch_feature_mean
 

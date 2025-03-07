@@ -7,6 +7,7 @@ from glob import glob
 from itertools import cycle
 from multiprocessing import Pool, Queue
 import tqdm
+import shutil
 
 import torch
 from PIL import Image # This is a 'offical' image process library in python
@@ -64,6 +65,7 @@ class ReidFeature():
                         # img.size(3) returns the width of the img
                         # e.g. width = 100 it returns [99,98,97,...,1,0]
                         img = img.index_select(3, inv_idx)
+                        print(img.shape)
                         # torch.index_select function is a function returns select_index correspond img
                         # so what this function do is to flip the img and then extract the featrue 
                         feat1 = self.model(img)
@@ -88,7 +90,18 @@ def process_input_by_worker_process(image_path_list):
     """Process_input_by_worker_process."""
     global FLAG 
 
+    # print(image_path_list)
+    # shutil.copy(image_path_list[0], '/home/yuqiang/yl4300/project/MCVT_YQ/reid')
+
     reid_feat_numpy = model.extract(image_path_list) # get all reid-feat here!
+    # print(reid_feat_numpy)
+
+    # # Save the reid_feat_numpy to a .npy file
+    # save_path = '/home/yuqiang/yl4300/project/MCVT_YQ/reid/reid_feat.npy'  # Change the path as needed
+    # np.save(save_path, reid_feat_numpy)
+    # print(f"Features saved to {save_path}")
+
+
     feat_dict = {}
     for index, image_path in enumerate(image_path_list):
         feat_dict[image_path] = reid_feat_numpy[index]
@@ -100,7 +113,6 @@ def process_input_by_worker_process(image_path_list):
 def load_all_data(data_path):
     """Load all mode data."""
     print(f'data path is {data_path}')
-    time.sleep(2)
 
     image_list = []
     for cam in os.listdir(data_path):
@@ -203,6 +215,50 @@ def debug_reid_feat(_cfg):
     model_name = _cfg.REID_MODEL.split('/')[-1]
     np.save(f'debug/{model_name}.npy', feat)
 
+def extract_image_feat1(_cfg):
+    """Extract reid feat for each image, using multiprocessing."""
+
+    image_list = load_all_data(_cfg.DET_IMG_DIR) # dataset load
+    # image_list = load_certain_data(_cfg.DET_IMG_DIR)
+    chunk_list = chunks(image_list) # take batchs
+    print('=============data load finish=======')
+
+    gpu_ids = Queue() # returns a queue contains different GPU IDs
+    gpu_id_cycle_iterator = cycle(range(0, 2)) # returns 0 1 0 1 0 1 
+    for _ in range(1):
+        gpu_ids.put(next(gpu_id_cycle_iterator)) # the next function just return the result of a iterate process
+
+    init_worker(gpu_id=gpu_ids, _cfg=_cfg)
+    for chunk in chunk_list:
+        process_input_by_worker_process(chunk)
+
+    # num_process = NUM_PROCESS # equal to 1 here, means single GPU i guess
+    # gpu_ids = Queue() # returns a queue contains different GPU IDs
+    # gpu_id_cycle_iterator = cycle(range(0, 2)) # returns 0 1 0 1 0 1 
+    # for _ in range(num_process):
+    #     gpu_ids.put(next(gpu_id_cycle_iterator)) # the next function just return the result of a iterate process
+
+    # process_pool = Pool(processes=num_process, initializer=init_worker, initargs=(gpu_ids, _cfg, )) 
+    # # NUM_Process means how many threads are here, initializer is the model and initagrs is args for the model
+    # # Pool is the function pool of worker processes
+    # start_time = time.time()
+    # pool_output = list(tqdm.tqdm(process_pool.imap_unordered(\
+    #                              process_input_by_worker_process, chunk_list),
+    #                              total=len(chunk_list))) 
+    # The computation starts! tqdm.tqdm () add the process bar to the command line
+    # process_pool is an instance from multiprocessing
+    # it will callinializer(*initargs) when it starts
+    # the process_pool.imap_unordered call functions and then chunks
+    # process_pool.close()
+    # process_pool.join()
+
+    # # global model
+    # # model = ReidFeature(0)
+    # # for sub_list in chunk_list:
+    # #     ret = process_input_by_worker_process(sub_list)
+    # print('%.4f s' % (time.time() - start_time))
+
+    # save_feature(_cfg.DATA_DIR, _cfg.DET_IMG_DIR, pool_output)
 
 def main():
     """Main method."""
@@ -212,6 +268,14 @@ def main():
     # debug_reid_feat(cfg)
     extract_image_feat(cfg)
 
+def main1():
+    cfg.merge_from_file(f'../config/{sys.argv[1]}')
+    cfg.freeze()
+    # debug_reid_feat(cfg)
+
+    extract_image_feat1(cfg)
+
 
 if __name__ == "__main__":
+    # main1()
     main()

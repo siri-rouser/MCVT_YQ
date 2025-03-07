@@ -1,6 +1,7 @@
 import os 
 import numpy as np
 import time
+import sys
 from sklearn.neighbors import KernelDensity
 from CostMatrix import CostMatrix
 from util_tools_bench import calc_reid,update_output,reid_cat,reid_dict_filter,xytoxywh
@@ -16,7 +17,10 @@ def main(previous_reid_dict,previous_rm_dict,query_cam,gallery_cam):
     gallery_track_path = os.path.join(abs_path,gallery_cam,f'{gallery_cam}_tracklet.pkl')
     cm = CostMatrix(query_track_path,gallery_track_path)
     dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, q_entry_zones,q_exit_zones,g_entry_zones,g_exit_zones = cm.cost_matrix(metric = 'Cosine_Distance')
-    # print(dismat.shape)
+    # 
+    print(dismat)
+    
+
     # save temporal results in here
     np.savez(save_np_path,distmat=dismat,q_track_ids=q_track_ids,g_track_ids=g_track_ids,q_cam_ids=q_cam_ids,g_cam_ids=g_cam_ids,q_times=q_times,g_times=g_times)
     # print(dismat)
@@ -33,6 +37,8 @@ def main(previous_reid_dict,previous_rm_dict,query_cam,gallery_cam):
         new_id = 0
 
     reid_dict,rm_dict = calc_reid(dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, q_entry_zones, q_exit_zones, g_entry_zones, g_exit_zones, new_id)
+    print(reid_dict)
+    sys.exit()
     # print(list(reid_dict.keys()))
     if previous_reid_dict:
         reid_dict = reid_cat(previous_reid_dict,reid_dict)

@@ -5,6 +5,7 @@ reid/reid_model/resnext101_ibn_a_2.pth
 detector/yolov8x.pt
 detector/yolov9e.pt
 
+detector/runs/
 # Ignoring datasets directory
 datasets/
 

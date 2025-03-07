@@ -12,7 +12,6 @@ sys.path.append('../../')
 import pickle
  
 seqs = ['c041','c042','c043','c044','c045','c046']
-# seqs = ['c046']
 
 # Load a model
 model = YOLO("/home/yuqiang/yl4300/project/MCVT_YQ/detector/yolov8x.pt")  # load an official model

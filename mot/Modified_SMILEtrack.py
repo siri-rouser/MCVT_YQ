@@ -91,7 +91,6 @@ class Modified_Tracker:
             if len(feats[bbox_id]) != 2048: #the recheck of feats dimension
                 print('??? feature dimension is not equal to 2048x1')
             
-      
             det = np.concatenate((det, feats[bbox_id]))
             detections.append(det)
 
@@ -129,13 +128,6 @@ class Modified_Tracker:
                 feat = np.zeros(2048)  # or handle as appropriate for your application
                 confidence = 0 
             
-            # print(f'{len(temp_results)} tracks in this frame')
-   
-           
-            # print(len(track.features))
-         #   print(len(feat))
-            # track.features = []
-
             id = temp_res.track_id
 
             tracks.append(Track(id, bbox,feat,confidence,class_id))

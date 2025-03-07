@@ -1,0 +1,237 @@
+The YOLOv8 test!!
+Start time: Tue  8 Oct 16:35:45 BST 2024
+[ WARN:0@47.881] global loadsave.cpp:244 findDecoder imread_('/home/yuqiang/yl4300/project/MCVT_YQ/datasets/AIC22_Track1_MTMC_Tracking//test/S06/c047/roi.jpg'): can't open/read file: check file path/integrity
+[ERROR:0@47.881] global cap.cpp:164 open VIDEOIO(CV_IMAGES): raised OpenCV exception:
+
+OpenCV(4.7.0) /io/opencv/modules/videoio/src/cap_images.cpp:253: error: (-5:Bad argument) CAP_IMAGES: can't find starting number (in the name of file): /home/yuqiang/yl4300/project/MCVT_YQ/datasets/AIC22_Track1_MTMC_Tracking//test/S06/c047/vdo.avi in function 'icvExtractPattern'
+
+
+
+real	2m21.663s
+user	2m24.447s
+sys	0m8.705s
+/home/yuqiang/anaconda3/envs/AICvenv/lib/python3.8/site-packages/torch/nn/modules/conv.py:456: UserWarning: Plan failed with a cudnnException: CUDNN_BACKEND_EXECUTION_PLAN_DESCRIPTOR: cudnnFinalize Descriptor Failed cudnn_status: CUDNN_STATUS_NOT_SUPPORTED (Triggered internally at ../aten/src/ATen/native/cudnn/Conv_v8.cpp:919.)
+  return F.conv2d(input, weight, bias, self.stride,
+
+real	12m4.266s
+user	11m56.690s
+sys	0m8.111s
+--------------------feature extraction--------------------
+--------------------SCT--------------------
+Traceback (most recent call last):
+  File "pre_process.py", line 40, in <module>
+    set_dir(os.path.join(cache_file,"feature")) # set_dir: make a new dir if here is no dir before
+  File "/home/yuqiang/yl4300/project/MCVT_YQ/mot/tool/utils.py", line 10, in set_dir
+    os.mkdir(filepath)
+FileNotFoundError: [Errno 2] No such file or directory: '../../datasets/algorithm_results/detect_merge/c047/feature'
+
+real	0m0.072s
+user	0m0.184s
+sys	0m0.313s
+/home/yuqiang/anaconda3/envs/AICvenv/lib/python3.8/site-packages/sklearn/utils/linear_assignment_.py:18: FutureWarning: The linear_assignment_ module is deprecated in 0.21 and will be removed from 0.23. Use scipy.optimize.linear_sum_assignment instead.
+  warnings.warn(
+Traceback (most recent call last):
+  File "DeepsortTracking.py", line 106, in <module>
+    t_total += main(seq)
+  File "DeepsortTracking.py", line 21, in main
+    sorted_feat_files = sorted(os.listdir(path_feat))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/c041/feature'
+
+real	0m0.305s
+user	0m0.960s
+sys	0m1.750s
+
+real	0m1.989s
+user	0m1.173s
+sys	0m1.008s
+--------------------MCT--------------------
+Traceback (most recent call last):
+  File "Trackletmatching_benchmark.py", line 83, in <module>
+    reid_dict, rm_dict = main(reid_dict,rm_dict,seqs[i],seqs[i+1])
+  File "Trackletmatching_benchmark.py", line 18, in main
+    dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, q_entry_zones,q_exit_zones,g_entry_zones,g_exit_zones = cm.cost_matrix(metric = 'Cosine_Distance')
+  File "/home/yuqiang/yl4300/project/MCVT_YQ/matching/CostMatrix.py", line 14, in cost_matrix
+    q_feats,q_track_ids,q_cam_ids,q_times,q_entry_zone,q_exit_zone = self._track_operation(self.query_track_path)
+  File "/home/yuqiang/yl4300/project/MCVT_YQ/matching/CostMatrix.py", line 32, in _track_operation
+    with open(tracklet_path,'rb') as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/c041/c041_tracklet.pkl'
+
+real	0m0.937s
+user	0m1.432s
+sys	0m1.726s
+Total execution time: 869 seconds
+----------------------------------------
+The YOLOv8 test!!
+Start time: Tue  8 Oct 16:53:35 BST 2024
+--------------------SCT--------------------
+Traceback (most recent call last):
+  File "pre_process.py", line 40, in <module>
+    set_dir(os.path.join(cache_file,"feature")) # set_dir: make a new dir if here is no dir before
+  File "/home/yuqiang/yl4300/project/MCVT_YQ/mot/tool/utils.py", line 10, in set_dir
+    os.mkdir(filepath)
+FileNotFoundError: [Errno 2] No such file or directory: '../../datasets/algorithm_results/detect_merge/c047/feature'
+
+real	0m0.077s
+user	0m0.213s
+sys	0m0.332s
+/home/yuqiang/anaconda3/envs/AICvenv/lib/python3.8/site-packages/sklearn/utils/linear_assignment_.py:18: FutureWarning: The linear_assignment_ module is deprecated in 0.21 and will be removed from 0.23. Use scipy.optimize.linear_sum_assignment instead.
+  warnings.warn(
+Traceback (most recent call last):
+  File "DeepsortTracking.py", line 106, in <module>
+    t_total += main(seq)
+  File "DeepsortTracking.py", line 21, in main
+    sorted_feat_files = sorted(os.listdir(path_feat))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/c041/feature'
+
+real	0m0.297s
+user	0m1.009s
+sys	0m1.679s
+
+real	0m1.954s
+user	0m1.212s
+sys	0m0.944s
+--------------------MCT--------------------
+Traceback (most recent call last):
+  File "Trackletmatching_benchmark.py", line 83, in <module>
+    reid_dict, rm_dict = main(reid_dict,rm_dict,seqs[i],seqs[i+1])
+  File "Trackletmatching_benchmark.py", line 18, in main
+    dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, q_entry_zones,q_exit_zones,g_entry_zones,g_exit_zones = cm.cost_matrix(metric = 'Cosine_Distance')
+  File "/home/yuqiang/yl4300/project/MCVT_YQ/matching/CostMatrix.py", line 14, in cost_matrix
+    q_feats,q_track_ids,q_cam_ids,q_times,q_entry_zone,q_exit_zone = self._track_operation(self.query_track_path)
+  File "/home/yuqiang/yl4300/project/MCVT_YQ/matching/CostMatrix.py", line 32, in _track_operation
+    with open(tracklet_path,'rb') as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/c041/c041_tracklet.pkl'
+
+real	0m0.939s
+user	0m1.499s
+sys	0m1.624s
+Total execution time: 7415 seconds
+----------------------------------------
+--------------------SCT--------------------
+python: can't open file 'pre_process.py': [Errno 2] No such file or directory
+
+real	0m0.025s
+user	0m0.019s
+sys	0m0.006s
+python: can't open file 'DeepsortTracking.py': [Errno 2] No such file or directory
+
+real	0m0.011s
+user	0m0.008s
+sys	0m0.003s
+python: can't open file 'Data_process_train.py': [Errno 2] No such file or directory
+
+real	0m0.010s
+user	0m0.010s
+sys	0m0.000s
+--------------------MCT--------------------
+python: can't open file 'Trackletmatching_benchmark.py': [Errno 2] No such file or directory
+
+real	0m0.010s
+user	0m0.008s
+sys	0m0.002s
+Total execution time: 1728410408 seconds
+----------------------------------------
+--------------------SCT--------------------
+
+real	3m40.528s
+user	3m37.506s
+sys	0m3.640s
+/home/yuqiang/anaconda3/envs/AICvenv/lib/python3.8/site-packages/sklearn/utils/linear_assignment_.py:18: FutureWarning: The linear_assignment_ module is deprecated in 0.21 and will be removed from 0.23. Use scipy.optimize.linear_sum_assignment instead.
+  warnings.warn(
+/home/yuqiang/anaconda3/envs/AICvenv/lib/python3.8/site-packages/sklearn/utils/linear_assignment_.py:124: FutureWarning: The linear_assignment function is deprecated in 0.21 and will be removed from 0.23. Use scipy.optimize.linear_sum_assignment instead.
+  warnings.warn(
+
+real	28m47.421s
+user	196m13.954s
+sys	410m51.895s
+
+real	0m1.977s
+user	0m1.181s
+sys	0m0.929s
+--------------------MCT--------------------
+Traceback (most recent call last):
+  File "Trackletmatching_benchmark.py", line 83, in <module>
+    reid_dict, rm_dict = main(reid_dict,rm_dict,seqs[i],seqs[i+1])
+  File "Trackletmatching_benchmark.py", line 18, in main
+    dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, q_entry_zones,q_exit_zones,g_entry_zones,g_exit_zones = cm.cost_matrix(metric = 'Cosine_Distance')
+  File "/home/yuqiang/yl4300/project/MCVT_YQ/matching/CostMatrix.py", line 14, in cost_matrix
+    q_feats,q_track_ids,q_cam_ids,q_times,q_entry_zone,q_exit_zone = self._track_operation(self.query_track_path)
+  File "/home/yuqiang/yl4300/project/MCVT_YQ/matching/CostMatrix.py", line 32, in _track_operation
+    with open(tracklet_path,'rb') as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/c041/c041_tracklet.pkl'
+
+real	0m0.929s
+user	0m1.558s
+sys	0m1.864s
+Total execution time: 1728412370 seconds
+----------------------------------------
+The YOLOv8 test!!
+Start time: Tue  8 Oct 20:24:33 BST 2024
+--------------------object detection--------------------
+[ WARN:0@48.068] global loadsave.cpp:244 findDecoder imread_('/home/yuqiang/yl4300/project/MCVT_YQ/datasets/AIC22_Track1_MTMC_Tracking//test/S06/c047/roi.jpg'): can't open/read file: check file path/integrity
+[ERROR:0@48.068] global cap.cpp:164 open VIDEOIO(CV_IMAGES): raised OpenCV exception:
+
+OpenCV(4.7.0) /io/opencv/modules/videoio/src/cap_images.cpp:253: error: (-5:Bad argument) CAP_IMAGES: can't find starting number (in the name of file): /home/yuqiang/yl4300/project/MCVT_YQ/datasets/AIC22_Track1_MTMC_Tracking//test/S06/c047/vdo.avi in function 'icvExtractPattern'
+
+
+
+real	2m21.722s
+user	2m24.297s
+sys	0m8.885s
+/home/yuqiang/anaconda3/envs/AICvenv/lib/python3.8/site-packages/torch/nn/modules/conv.py:456: UserWarning: Plan failed with a cudnnException: CUDNN_BACKEND_EXECUTION_PLAN_DESCRIPTOR: cudnnFinalize Descriptor Failed cudnn_status: CUDNN_STATUS_NOT_SUPPORTED (Triggered internally at ../aten/src/ATen/native/cudnn/Conv_v8.cpp:919.)
+  return F.conv2d(input, weight, bias, self.stride,
+
+real	11m36.210s
+user	11m28.550s
+sys	0m7.724s
+--------------------feature extraction--------------------
+--------------------SCT--------------------
+Traceback (most recent call last):
+  File "pre_process.py", line 46, in <module>
+    with open(cache_file, 'rb') as fid: # 'rb' means writing binary file
+FileNotFoundError: [Errno 2] No such file or directory: '../../datasets/algorithm_results/detect_merge/c041/c041_dets_feat.pkl'
+
+real	0m0.074s
+user	0m0.205s
+sys	0m0.292s
+/home/yuqiang/anaconda3/envs/AICvenv/lib/python3.8/site-packages/sklearn/utils/linear_assignment_.py:18: FutureWarning: The linear_assignment_ module is deprecated in 0.21 and will be removed from 0.23. Use scipy.optimize.linear_sum_assignment instead.
+  warnings.warn(
+Traceback (most recent call last):
+  File "DeepsortTracking.py", line 106, in <module>
+    t_total += main(seq)
+  File "DeepsortTracking.py", line 66, in main
+    tracker.update(bbox, confidence, feats)
+  File "/home/yuqiang/yl4300/project/MCVT_YQ/mot/Modified_Deepsort.py", line 26, in update
+    dets.append(Detection(bbox, confidence[bbox_id], feats[bbox_id])) 
+IndexError: list index out of range
+
+real	0m0.300s
+user	0m0.886s
+sys	0m1.561s
+Traceback (most recent call last):
+  File "Data_process.py", line 140, in <module>
+    post_process(seq)
+  File "Data_process.py", line 41, in post_process
+    with open(feat_path,'rb') as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/c041/c041_mot_feat_new.pkl'
+
+real	0m0.068s
+user	0m0.190s
+sys	0m0.293s
+--------------------MCT--------------------
+Traceback (most recent call last):
+  File "Trackletmatching_benchmark.py", line 83, in <module>
+    reid_dict, rm_dict = main(reid_dict,rm_dict,seqs[i],seqs[i+1])
+  File "Trackletmatching_benchmark.py", line 18, in main
+    dismat,q_track_ids,q_cam_ids, g_track_ids, g_cam_ids, q_times, g_times, q_entry_zones,q_exit_zones,g_entry_zones,g_exit_zones = cm.cost_matrix(metric = 'Euclidean_Distance')
+  File "/home/yuqiang/yl4300/project/MCVT_YQ/matching/CostMatrix.py", line 14, in cost_matrix
+    q_feats,q_track_ids,q_cam_ids,q_times,q_entry_zone,q_exit_zone = self._track_operation(self.query_track_path)
+  File "/home/yuqiang/yl4300/project/MCVT_YQ/matching/CostMatrix.py", line 32, in _track_operation
+    with open(tracklet_path,'rb') as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/c041/c041_tracklet.pkl'
+
+real	0m0.925s
+user	0m1.553s
+sys	0m1.767s
+Total execution time: 839 seconds
+----------------------------------------

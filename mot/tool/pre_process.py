@@ -8,7 +8,6 @@ from utils import set_dir
 src_path = "../../datasets/algorithm_results/detect_merge/"
 
 cam_names = ['c041','c042','c043','c044','c045','c046']
-# cam_names = ['c041']
 
 
 def save_file(data,cam_name,image_name):

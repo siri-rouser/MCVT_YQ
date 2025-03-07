@@ -43,8 +43,10 @@ def main(seq):
     video_out_path = os.path.join(abs_path, seq, 'out1.mp4')
     if seq in ['c041','c042','c043','c044']:
         cap_out = cv2.VideoWriter(video_out_path, cv2.VideoWriter_fourcc(*'mp4v'), 10,(1280,960))
-    else:
+    elif seq in ['c045','c046']:
         cap_out = cv2.VideoWriter(video_out_path, cv2.VideoWriter_fourcc(*'mp4v'), 10,(1280,720))
+    else:
+        cap_out = cv2.VideoWriter(video_out_path, cv2.VideoWriter_fourcc(*'mp4v'), 30,(3840,2160))
  #   mot_feat_data = {}
     feat_pkl_file = os.path.join(abs_path,seq,f'{seq}_mot_feat_new.pkl')
     mot_feat_data = {}
@@ -133,8 +135,9 @@ def main(seq):
 
 
 if __name__ == "__main__":
-    seqs = ['c041','c042','c043','c044','c045','c046']
-    # seqs = ['c041']
+    # seqs = ['c041','c042','c043','c044','c045','c046']
+    # #
+    seqs = ['c047']
     num_process = 6
     t_total = 0
 

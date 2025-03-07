@@ -1,0 +1,11 @@
+The YOLOv8 test!!
+----------------------------------------
+Start time: Wed 14 Aug 18:58:11 BST 2024
+Note: Running the script for batch process analysis.
+--------------------object detection--------------------
+Traceback (most recent call last):
+  File "gen_images_aic.py", line 67, in <module>
+    preprocess(src_root=f'{cfg.CHALLENGE_DATA_DIR}',
+  File "gen_images_aic.py", line 46, in preprocess
+    _, frame = video.read()
+KeyboardInterrupt

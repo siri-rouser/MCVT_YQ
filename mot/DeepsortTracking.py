@@ -29,7 +29,7 @@ def main(seq):
 
     video_out_path = os.path.join(abs_path, seq, 'out1.mp4')
     frame_size = (1280, 960) if seq in ['c041', 'c042', 'c043', 'c044'] else (1280, 720)
-    cap_out = cv2.VideoWriter(video_out_path, cv2.VideoWriter_fourcc(*'mp4v'), 10, frame_size)
+    cap_out = cv2.VideoWriter(video_out_path, cv2.VideoWriter_fourcc(*'mp4v'), 30, frame_size)
     
     feat_pkl_file = os.path.join(abs_path, seq, f'{seq}_mot_feat_new.pkl')
     mot_feat_data = {}

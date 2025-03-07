@@ -1,7 +1,7 @@
 #!/bin/bash
 
 MCMT_CONFIG_FILE="aic_all.yml"
-output_file="/home/yuqiang/yl4300/project/MCVT_YQ/time_logbook.txt"
+output_file="/home/yuqiang/yl4300/project/MCVT_YQ/time_logbook_.txt"
 
 # Adding an initial echo to clear doubts about file writing
 echo "The YOLOv8 test!!" >> $output_file

@@ -36,6 +36,8 @@ class CostMatrix:
             for track_id,value in track_info.items():
                 feat_tensor = torch.tensor(value['feat'], dtype=torch.float).unsqueeze(0)# torch.unsequezze(0) add one dimenson to let it be [1x1024] ratherthan [1024]
                 feats.append(feat_tensor)
+                print(type(feats))
+                print(len(feats))
                 track_ids.append(track_id)
                 cam_ids.append(int(value['cam'][-3:]))
                 times.append([value['start_time'],value['end_time']])
